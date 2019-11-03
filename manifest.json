@@ -1,0 +1,117 @@
+{
+    "name": "Mailjet [BETA]",
+    "tags": [
+        "outgoing",
+        "oneColumn",
+        "batch",
+        "smart-notifier"
+    ],
+    "description": "Synchronize Hull contacts with Mailjet.",
+    "readme": "readme.md",
+    "tabs": [],
+    "version": "0.1.0",
+    "source": "mailjet",
+    "logo": "logo.png",
+    "ui": false,
+    "settings": [],
+    "private_settings": [
+        {
+            "name": "api_key",
+            "title": "API Key",
+            "type": "string",
+            "required": true
+        },
+        {
+            "name": "api_secret_key",
+            "title": "API Prefix",
+            "type": "string",
+            "required": true
+        },
+        {
+            "name": "contact_synchronized_segments",
+            "title": "Contact Filter",
+            "description": "Send users as contacts when they belong to one of these segments to Mailjet. Only users in the specified segments are sent.",
+            "type": "array",
+            "format": "table",
+            "default": [],
+            "items": {
+              "type": "object",
+              "properties": {
+                "hull_segment_id": {
+                  "type": "string",
+                  "format": "segment",
+                  "title": "Hull Segment"
+                },
+                "service_list_id": {
+                  "type": "string",
+                  "format": "select",
+                  "title": "Contact List",
+                  "options" : {
+                    "loadOptions": "/metadata/contactlists"
+                  }
+                }
+              },
+              "required" : [
+                "hull_segment_id",
+                "service_list_id"
+              ]
+            }
+        },
+        {
+            "name" : "contact_attributes_outbound",
+            "title" : "User attributes mapping",
+            "type" : "array",
+            "format" : "table",
+            "default" : [
+              { "hull_field_name" : "name", "service_field_name" : "Name" },
+              { "hull_field_name" : "email", "service_field_name" : "Email" }
+            ],
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "hull_field_name" : {
+                  "type" : "string",
+                  "format" : "trait",
+                  "title" : "Hull Attribute"
+                },
+                "service_field_name" : {
+                  "type" : "string",
+                  "title" : "Contact Property",
+                  "format" : "select",
+                  "options" : {
+                    "loadOptions": "/metadata/contactproperties"
+                  }
+                }
+              },
+              "required" : [
+                "hull_field_name",
+                "service_field_name"
+              ]
+            }
+          }
+    ],
+    "schedules": [],
+    "subscriptions": [
+        {
+            "url": "/smart-notifier"
+        }
+    ],
+    "settings_sections": [
+        {
+            "title": "Authentication",
+            "description": "Configure basic parameters to connect to your Mailjet service",
+            "properties": [
+                "private_settings.api_key",
+                "private_settings.api_secret_key"
+            ]
+        },
+        {
+            "title": "Contact Synchronization Setup",
+            "description": "How we synchronize Hull Users with Mailjet Contacts",
+            "properties": [
+              "private_settings.contact_synchronized_segments",
+              "private_settings.contact_attributes_outbound"
+            ]
+        }
+    ]
+}

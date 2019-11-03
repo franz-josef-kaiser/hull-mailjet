@@ -1,0 +1,64 @@
+{
+  "name": "hull-mailjet",
+  "version": "0.1.0",
+  "description": "Hull Connector for Mailjet",
+  "main": "index.ts",
+  "scripts": {
+    "test": "jest --env=node --colors --coverage --no-cache"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SMK1085/hull-mailjet.git"
+  },
+  "keywords": [
+    "hull",
+    "connector",
+    "integration",
+    "mailjet"
+  ],
+  "author": {
+    "name": "Sven Maschek",
+    "email": "sven@hull.io",
+    "url": "https://www.hull.io"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SMK1085/hull-mailjet/issues"
+  },
+  "homepage": "https://github.com/SMK1085/hull-mailjet#readme",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "hull": "^0.13.20",
+    "lodash": "^4.17.15",
+    "newrelic": "^6.0.0",
+    "pm2": "^4.1.2",
+    "typescript": "^3.6.4",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.4",
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/preset-typescript": "^7.6.0",
+    "@babel/runtime": "^7.6.3",
+    "@types/cors": "^2.8.5",
+    "@types/express": "^4.17.0",
+    "@types/jest": "^24.0.15",
+    "@types/lodash": "^4.14.136",
+    "@types/nock": "^10.0.3",
+    "@types/node": "^12.6.0",
+    "@types/winston": "^2.4.4",
+    "babel-jest": "^24.8.0",
+    "jest": "^24.8.0",
+    "nock": "10.0.6",
+    "nodemon": "1.19.1",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.18.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-config-standard": "^8.0.1"
+  }
+}
