@@ -1,0 +1,30 @@
+{
+    "Count": 3,
+    "Data": [
+        {
+            "Address": "e8qnwdl8r",
+            "CreatedAt": "2019-06-12T07:15:36Z",
+            "ID": 1115,
+            "IsDeleted": false,
+            "Name": "Demo list",
+            "SubscriberCount": 14
+        },
+        {
+            "Address": "Tdlzccko9",
+            "CreatedAt": "2019-08-01T12:50:35Z",
+            "ID": 2818,
+            "IsDeleted": false,
+            "Name": "_TEST",
+            "SubscriberCount": 0
+        },
+        {
+            "Address": "Oariasa82",
+            "CreatedAt": "2019-08-01T12:51:56Z",
+            "ID": 2819,
+            "IsDeleted": false,
+            "Name": "_FOO",
+            "SubscriberCount": 0
+        }
+    ],
+    "Total": 3
+}

@@ -1,0 +1,21 @@
+{
+    "Count": 1,
+    "Data": [
+        {
+            "CreatedAt": "2019-06-25T10:52:30Z",
+            "DeliveredCount": 0,
+            "Email": "john.doe@hull.io",
+            "ExclusionFromCampaignsUpdatedAt": "",
+            "ID": 1536839,
+            "IsExcludedFromCampaigns": false,
+            "IsOptInPending": false,
+            "IsSpamComplaining": false,
+            "LastActivityAt": "2019-06-25T10:52:30Z",
+            "LastUpdateAt": "2019-06-25T10:52:30Z",
+            "Name": "John Doe",
+            "UnsubscribedAt": "",
+            "UnsubscribedBy": ""
+        }
+    ],
+    "Total": 1
+}

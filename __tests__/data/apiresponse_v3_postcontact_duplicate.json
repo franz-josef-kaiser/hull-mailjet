@@ -1,0 +1,5 @@
+{
+    "ErrorInfo": "",
+    "ErrorMessage": "MJ18 A Contact resource with value \"user@example.com\" for Email already exists.",
+    "StatusCode": 400
+}

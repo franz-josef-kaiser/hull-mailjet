@@ -1,0 +1,51 @@
+{
+    "Count": 3,
+    "Data": [
+        {
+            "CreatedAt": "2019-06-25T10:52:30Z",
+            "DeliveredCount": 0,
+            "Email": "john.doe@gmail.com",
+            "ExclusionFromCampaignsUpdatedAt": "",
+            "ID": 1536839,
+            "IsExcludedFromCampaigns": false,
+            "IsOptInPending": false,
+            "IsSpamComplaining": false,
+            "LastActivityAt": "2019-06-25T10:52:30Z",
+            "LastUpdateAt": "2019-06-25T10:52:30Z",
+            "Name": "",
+            "UnsubscribedAt": "",
+            "UnsubscribedBy": ""
+        },
+        {
+            "CreatedAt": "2019-06-25T10:52:30Z",
+            "DeliveredCount": 0,
+            "Email": "jim.doe@hull.io",
+            "ExclusionFromCampaignsUpdatedAt": "",
+            "ID": 1536840,
+            "IsExcludedFromCampaigns": false,
+            "IsOptInPending": false,
+            "IsSpamComplaining": false,
+            "LastActivityAt": "2019-06-25T10:52:30Z",
+            "LastUpdateAt": "2019-06-25T10:52:30Z",
+            "Name": "",
+            "UnsubscribedAt": "",
+            "UnsubscribedBy": ""
+        },
+        {
+            "CreatedAt": "2019-06-25T10:52:30Z",
+            "DeliveredCount": 0,
+            "Email": "jane.doe@hull.io",
+            "ExclusionFromCampaignsUpdatedAt": "",
+            "ID": 1536841,
+            "IsExcludedFromCampaigns": false,
+            "IsOptInPending": false,
+            "IsSpamComplaining": false,
+            "LastActivityAt": "2019-06-25T10:52:30Z",
+            "LastUpdateAt": "2019-06-25T10:52:30Z",
+            "Name": "",
+            "UnsubscribedAt": "",
+            "UnsubscribedBy": ""
+        }
+    ],
+    "Total": 3
+}

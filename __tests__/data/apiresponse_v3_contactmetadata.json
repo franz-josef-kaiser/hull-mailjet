@@ -1,0 +1,114 @@
+{
+    "Count": 18,
+    "Data": [
+        {
+            "Datatype": "str",
+            "ID": 4507,
+            "Name": "salutation",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 4509,
+            "Name": "first_name",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 4510,
+            "Name": "last_name",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 4511,
+            "Name": "title",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7554,
+            "Name": "salutation_suffix",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7555,
+            "Name": "job_title",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7556,
+            "Name": "extkey",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7557,
+            "Name": "extsys",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7558,
+            "Name": "dob",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7559,
+            "Name": "gender",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7560,
+            "Name": "customer_type",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7561,
+            "Name": "country",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7562,
+            "Name": "name",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7563,
+            "Name": "zip_code",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7564,
+            "Name": "language",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7565,
+            "Name": "city",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7566,
+            "Name": "title_suffix",
+            "NameSpace": "static"
+        },
+        {
+            "Datatype": "str",
+            "ID": 7630,
+            "Name": "purchase",
+            "NameSpace": "historic"
+        }
+    ],
+    "Total": 18
+}
