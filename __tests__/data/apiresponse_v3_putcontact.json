@@ -1,0 +1,21 @@
+{
+    "Count": 1,
+    "Data": [
+        {
+            "CreatedAt": "2019-11-04T17:35:37Z",
+            "DeliveredCount": 0,
+            "Email": "user@example.com",
+            "ExclusionFromCampaignsUpdatedAt": "",
+            "ID": 10044469,
+            "IsExcludedFromCampaigns": false,
+            "IsOptInPending": false,
+            "IsSpamComplaining": false,
+            "LastActivityAt": "",
+            "LastUpdateAt": "2019-11-05T07:51:41Z",
+            "Name": "Contact 1 Updated",
+            "UnsubscribedAt": "",
+            "UnsubscribedBy": ""
+        }
+    ],
+    "Total": 1
+}

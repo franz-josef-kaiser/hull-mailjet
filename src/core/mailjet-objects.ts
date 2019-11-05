@@ -1,4 +1,5 @@
 export type MailJetDatatype = "str" | "int" | "float" | "bool" | "datetime";
+export type MailJetContactListActionType = "addforce" | "addnoforce" | "remove" | "unsub";
 
 export interface IMailjetPagedResult<T> {
     Count: number;
@@ -51,8 +52,37 @@ export interface IMailjetContactDataEntry {
     Value: string | number | boolean;
 }
 
-export interface IMailjetContactData {
+export interface IMailjetContactDataUpdate {
+    Data: IMailjetContactDataEntry[];
+}
+
+export interface IMailjetContactData extends IMailjetContactDataUpdate{
     ContactID: number;
     ID: number;
-    Data: IMailjetContactDataEntry[];
+}
+
+export interface IMailjetContactListMembership {
+    IsActive: boolean;
+    IsUnsub: boolean;
+    ListID: number;
+    SubscribedAt: string;
+}
+
+export interface IMailjetContactListAction {
+    ListID: number;
+    Action: MailJetContactListActionType;
+}
+
+export interface IMailjetContactListCrud {
+    ContactLists: IMailjetContactListAction[];
+}
+
+export interface IMailjetListRecipient {
+    IsUnsubscribed: boolean;
+    ContactID: number;
+    ID: number;
+    ListID: number;
+    ListName: string;
+    SubscribedAt: string;
+    UnsubscribedAt: string;
 }

@@ -1,0 +1,16 @@
+{
+    "Count": 1,
+    "Data": [
+        {
+            "ContactID": 1536839,
+            "ID": 1443964,
+            "IsActive": true,
+            "IsUnsubscribed": false,
+            "ListID": 1115,
+            "ListName": "Demo list",
+            "SubscribedAt": "2019-06-25T10:52:30Z",
+            "UnsubscribedAt": ""
+        }
+    ],
+    "Total": 1
+}

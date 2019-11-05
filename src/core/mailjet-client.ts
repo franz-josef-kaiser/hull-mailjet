@@ -2,7 +2,7 @@ import _ from "lodash";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import IApiResultObject from "../types/api-result";
 import IMailjetClientConfig from "./mailjet-client-config";
-import { IMailjetPagedResult, IMailjetContactProperty, IMailjetContactList, IMailjetContact, IMailjetContactCreate } from "./mailjet-objects";
+import { IMailjetPagedResult, IMailjetContactProperty, IMailjetContactList, IMailjetContact, IMailjetContactCreate, IMailjetContactUpdate, IMailjetContactData, IMailjetContactDataUpdate, IMailjetContactListMembership, IMailjetListRecipient, IMailjetContactListCrud, IMailjetContactListAction } from "./mailjet-objects";
 
 const API_BASE_URL = `https://api.mailjet.com/v3/REST`;
 
@@ -99,6 +99,45 @@ class MailjetClient {
     }
 
     /**
+     * Update the user-given name and exclusion status of a specific contact.
+     * See https://dev.mailjet.com/email/reference/contacts/contact/#v3_put_contact_contact_ID
+     *
+     * @param {(string | number)} mjIdent The Mailjet ID or email address of the contact.
+     * @param {IMailjetContactUpdate} record The data to update.
+     * @returns {Promise<IApiResultObject<IMailjetPagedResult<IMailjetContact>, IMailjetContactUpdate>>} An API result with the paged contact.
+     * @memberof MailjetClient
+     */
+    public async updateContact(mjIdent: string | number, record: IMailjetContactUpdate): Promise<IApiResultObject<IMailjetPagedResult<IMailjetContact>, IMailjetContactUpdate>> {
+        const url = `${this._apiBaseUrl}/contact/${mjIdent}`;
+        const method = "update";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.put(url, record, axiosConfig);
+        
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContact>, IMailjetContactUpdate> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: undefined,
+                method,
+                record,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContact>, IMailjetContactUpdate> = 
+                this.createApiErrorResult<IMailjetPagedResult<IMailjetContact>, IMailjetContactUpdate>(url, method, axiosError);
+
+            return apiResult;
+        }
+
+    }
+
+    /**
      * Retrieve a list of all contacts. Includes information about contact status and creation / activity timestamps.
      * See https://dev.mailjet.com/email/reference/contacts/contact#v3_get_contact
      *
@@ -138,6 +177,167 @@ class MailjetClient {
     }
 
     /**
+     * Retrieve all contact lists for a specific contact. You will receive information on the status of the contact for each list. 
+     * Information about lists deleted within the last 60 days will be returned as well, since those are soft-deleted and can be reinstated.
+     * See https://dev.mailjet.com/email/reference/contacts/subscriptions/#v3_get_contact_contact_ID_getcontactslists
+     *
+     * @param {(string | number)} mjIdent The Mailjet ID or email address of the contact.
+     * @returns {Promise<IApiResultObject<IMailjetPagedResult<IMailjetContactListMembership>, any>>} An API result with the paged list subscriptions.
+     * @memberof MailjetClient
+     */
+    public async getContactListSubscriptions(mjIdent: string | number): Promise<IApiResultObject<IMailjetPagedResult<IMailjetContactListMembership>, any>> {
+        const url = `${this._apiBaseUrl}/contact/${mjIdent}/getcontactslists`;
+        const method = "query";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.get(url, axiosConfig);
+        
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContactListMembership>, any> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: undefined,
+                method,
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContactListMembership>, any> = 
+                this.createApiErrorResult<IMailjetPagedResult<IMailjetContactListMembership>, any>(url, method, axiosError);
+
+            return apiResult;
+        }
+    }
+
+    /**
+     * Retrieve details on all list recipients for the given contact.
+     * See https://dev.mailjet.com/email/reference/contacts/subscriptions/#v3_get_listrecipient
+     * 
+     * @param {(string | number)} mjIdent The Mailjet ID or email address of the contact.
+     * @param {number} [offset=0] The list offset for pagination, defaults to zero.
+     * @param {number} [limit=1000] The page size for pagination, defaults to 1000.
+     * @returns {Promise<IApiResultObject<IMailjetPagedResult<IMailjetListRecipient>, any>>} An API result with the paged list recipients.
+     * @memberof MailjetClient
+     */
+    public async getListRecipients(mjIdent: string | number, offset: number = 0, limit: number = 1000): Promise<IApiResultObject<IMailjetPagedResult<IMailjetListRecipient>, any>> {
+        let url = `${this._apiBaseUrl}/listrecipient?Limit=${limit}&Offset=${offset}`;
+        if(_.isNumber(mjIdent)) {
+            url += `&Contact=${mjIdent}`;
+        } else {
+            url += `&ContactEmail=${mjIdent}`;
+        }
+        
+        const method = "query";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.get(url, axiosConfig);
+        
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetListRecipient>, any> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: undefined,
+                method,
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetListRecipient>, any> = 
+                this.createApiErrorResult<IMailjetPagedResult<IMailjetListRecipient>, any>(url, method, axiosError);
+
+            return apiResult;
+        }
+    }
+
+    /**
+     * Delete a list recipient. This effectively removes a contact from a contact list.
+     * See https://dev.mailjet.com/email/reference/contacts/subscriptions/#v3_delete_listrecipient_listrecipient_ID
+     *
+     * @param {number} recipientId The unique numeric ID of the list recipient.
+     * @returns {Promise<IApiResultObject<any, any>>} An API result object with no content.
+     * @memberof MailjetClient
+     */
+    public async deleteListRecipient(recipientId: number): Promise<IApiResultObject<any, any>> {
+        const url = `${this._apiBaseUrl}/listrecipient/${recipientId}`;
+
+        const method = "delete";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.get(url, axiosConfig);
+        
+            const apiResult: IApiResultObject<any, any> = {
+                data: { message: `Recipient with id '${recipientId} deleted.` },
+                endpoint: url,
+                error: undefined,
+                method,
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<any, any> = 
+                this.createApiErrorResult<any, any>(url, method, axiosError);
+
+            return apiResult;
+        }
+    }
+
+    /**
+     * Manage the presence and subscription status of a contact for multiple contact lists. 
+     * Select the contact lists, as well as the desired action to be performed on each one - add, remove or unsub. 
+     * The contact should already be present in the global contact list.
+     * See https://dev.mailjet.com/email/reference/contacts/subscriptions/#v3_post_contact_contact_ID_managecontactslists
+     *
+     * @param {(string | number)} mjIdent The Mailjet ID or email address of the contact.
+     * @param {IMailjetContactListCrud} actions Information about the contact lists and the actions performed for each list.
+     * @returns {Promise<IApiResultObject<IMailjetPagedResult<IMailjetContactListAction>, IMailjetContactListCrud>>} An API result object with a paged result of actions performed for each list.
+     * @memberof MailjetClient
+     */
+    public async manageContactListSubscriptions(mjIdent: string | number, actions: IMailjetContactListCrud): Promise<IApiResultObject<IMailjetPagedResult<IMailjetContactListAction>, IMailjetContactListCrud>> {
+        const url = `${this._apiBaseUrl}/contact/${mjIdent}/managecontactslists`;
+        const method = "insert";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.post(url, actions, axiosConfig);
+        
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContactListAction>, IMailjetContactListCrud> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: undefined,
+                method,
+                record: actions,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContactListAction>, IMailjetContactListCrud> = 
+                this.createApiErrorResult<IMailjetPagedResult<IMailjetContactListAction>, IMailjetContactListCrud>(url, method, axiosError);
+
+            return apiResult;
+        }
+    }
+
+    /**
      * Retrieve details for all contact lists - name, subscriber count, creation timestamp, deletion status.
      * See https://dev.mailjet.com/email/reference/contacts/contact-list/
      * @param {number} [offset=0] The list offset for pagination, defaults to zero.
@@ -173,6 +373,84 @@ class MailjetClient {
             return apiResult;
         }
     } 
+
+    /**
+     * Retrieve all properties and respective values associated with a specific contact.
+     * See https://dev.mailjet.com/email/reference/contacts/contact-properties/#v3_get_contactdata_contact_ID
+     *
+     * @param {(string | number)} mjIdent The Mailjet ID or email address of the contact.
+     * @returns {Promise<IApiResultObject<IMailjetPagedResult<IMailjetContactData>>>} An API result with the paged contact data.
+     * @memberof MailjetClient
+     */
+    public async getContactData(mjIdent: string | number): Promise<IApiResultObject<IMailjetPagedResult<IMailjetContactData>, any>> {
+        const url = `${this._apiBaseUrl}/contactdata/${mjIdent}`;
+        const method = "query";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.get(url, axiosConfig);
+        
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContactData>, any> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: undefined,
+                method,
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContactData>, any> = 
+                this.createApiErrorResult<IMailjetPagedResult<IMailjetContactData>, any>(url, method, axiosError);
+
+            return apiResult;
+        }
+
+    }
+
+    /**
+     * Update the extra static data for a contact by using your already created /contactmetadata objects (contact properties) and 
+     * assigning / updating values to them for the specific ContactID.
+     * See https://dev.mailjet.com/email/reference/contacts/contact-properties/#v3_put_contactdata_contact_ID
+     *
+     * @param {(string | number)} mjIdent The Mailjet ID or email address of the contact.
+     * @param {IMailjetContactDataUpdate} record The data to update.
+     * @returns {Promise<IApiResultObject<IMailjetPagedResult<IMailjetContactData>, IMailjetContactDataUpdate>>} An API result with the paged contact data.
+     * @memberof MailjetClient
+     */
+    public async updateContactData(mjIdent: string | number, record: IMailjetContactDataUpdate): Promise<IApiResultObject<IMailjetPagedResult<IMailjetContactData>, IMailjetContactDataUpdate>> {
+        const url = `${this._apiBaseUrl}/contactdata/${mjIdent}`;
+        const method = "update";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.put(url, record, axiosConfig);
+        
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContactData>, IMailjetContactDataUpdate> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: undefined,
+                method,
+                record,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContactData>, IMailjetContactDataUpdate> = 
+                this.createApiErrorResult<IMailjetPagedResult<IMailjetContactData>, IMailjetContactDataUpdate>(url, method, axiosError);
+
+            return apiResult;
+        }
+
+    }
 
     /**
      * Returns the metadata for all contact properties in the authenticated Mailjet account.
