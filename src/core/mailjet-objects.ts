@@ -1,3 +1,6 @@
+import IHullUserUpdateMessage from "../types/user-update-message";
+import IHullAccountUpdateMessage from "../types/account-update-message";
+
 export type MailJetDatatype = "str" | "int" | "float" | "bool" | "datetime";
 export type MailJetContactListActionType = "addforce" | "addnoforce" | "remove" | "unsub";
 
@@ -85,4 +88,14 @@ export interface IMailjetListRecipient {
     ListName: string;
     SubscribedAt: string;
     UnsubscribedAt: string;
+}
+
+export interface IOperationEnvelope {
+    msg: IHullUserUpdateMessage | IHullAccountUpdateMessage;
+    serviceContactCreate?: IMailjetContactCreate;
+    serviceContact?: IMailjetContact;
+    serviceContactData?: IMailjetContactData;
+    serviceContactListActions?: IMailjetContactListAction[];
+    operation: "insert" | "update" | "skip";
+    reason?: string;
 }

@@ -28,6 +28,13 @@
             "required": true
         },
         {
+            "name": "subaccount_slug",
+            "title": "Subaccount Slug",
+            "type": "string",
+            "required": false,
+            "description": "If you use **multiple sub-accounts**, you need to use a slug to prevent Hull from overwriting data. The slug will be appended to the attribute group, e.g. if you enter the slug `Marketing Germany` the resulting attribute group in Hull will be `mailjet_marketing_germany`. If you are not sure whether you have to use this or not, contact our Support team at [support@hull.io](mailto:support@hull.io)."
+        },
+        {
             "name": "contact_synchronized_segments",
             "title": "Contact Filter",
             "description": "Send users as contacts when they belong to one of these segments to Mailjet. Only users in the specified segments are sent.",
@@ -43,7 +50,7 @@
                   "title": "Hull Segment"
                 },
                 "service_list_id": {
-                  "type": "string",
+                  "type": "number",
                   "format": "select",
                   "title": "Contact List",
                   "options" : {
@@ -60,11 +67,11 @@
         {
             "name" : "contact_attributes_outbound",
             "title" : "User attributes mapping",
+            "description": "The connector automatically maps and uses the Hull attribute `email` as value for the property Email. This is required for identity resolution and cannot be changed. The default Mailjet property `Name` is indicated by the `(*)` prefix in case you have a custom attribute with the same label.",
             "type" : "array",
             "format" : "table",
             "default" : [
-              { "hull_field_name" : "name", "service_field_name" : "Name" },
-              { "hull_field_name" : "email", "service_field_name" : "Email" }
+              { "hull_field_name" : "name", "service_field_name" : "Name" }
             ],
             "items" : {
               "type" : "object",
@@ -102,7 +109,8 @@
             "description": "Configure basic parameters to connect to your Mailjet service",
             "properties": [
                 "private_settings.api_key",
-                "private_settings.api_secret_key"
+                "private_settings.api_secret_key",
+                "private_settings.subaccount_slug"
             ]
         },
         {
