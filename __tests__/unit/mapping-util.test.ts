@@ -333,7 +333,7 @@ describe("MappingUtil", () => {
         });
         const util = new MappingUtil(privateSettings);
         const expected: IMailjetContactListCrud = {
-            ContactLists: _.map(hullSegments, (s) => {
+            ContactsLists: _.map(hullSegments, (s) => {
                 return {
                     ListID: 1115,
                     Action: "addnoforce"
@@ -363,14 +363,14 @@ describe("MappingUtil", () => {
         });
         const util = new MappingUtil(privateSettings);
         const expected: IMailjetContactListCrud = {
-            ContactLists: _.map(hullSegments, (s) => {
+            ContactsLists: _.map(hullSegments, (s) => {
                 return {
                     ListID: 1115,
                     Action: "addnoforce"
                 };
             })
         };
-        expected.ContactLists.push({
+        expected.ContactsLists.push({
             ListID: 2818,
             Action: "unsub"
         });
@@ -408,7 +408,7 @@ describe("MappingUtil", () => {
         });
         const util = new MappingUtil(privateSettings);
         const expected: IMailjetContactListCrud = {
-            ContactLists: _.map(hullSegments, (s) => {
+            ContactsLists: _.map(hullSegments, (s) => {
                 return {
                     ListID: 1115,
                     Action: "addnoforce"
@@ -460,7 +460,7 @@ describe("MappingUtil", () => {
             }
         ]
         const expected: IMailjetContactListCrud = {
-            ContactLists: []
+            ContactsLists: []
         };
         const actual = util.mapHullSegmentsToContactListActions(hullSegments, recipients);
         expect(actual).toEqual(expected);

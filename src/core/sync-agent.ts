@@ -90,6 +90,9 @@ class SyncAgent {
                 env.serviceContactData = this._mappingUtil.mapHullUserToMailjetContactData((env.msg as IHullUserUpdateMessage).user);
                 env.serviceContactListActions = this._mappingUtil.mapHullSegmentsToContactListActions((env.msg as IHullUserUpdateMessage).segments, recipients);
                 
+                // tslint:disable-next-line:no-console
+                console.log(env);
+
                 // [STEP 3] Execute API calls
                 let performedApiCall: boolean = false;
                 if (env.operation === "insert") {
@@ -99,7 +102,11 @@ class SyncAgent {
                     this.handleOutgoingApiResult(env, contactApiResult);
                     env.serviceContact = contactApiResult.success && (contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Count === 1 ?
                         _.first((contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Data) : undefined;
-                } else if(env.operation === "update") {
+                } else if(env.operation === "update" &&
+                          env.serviceContact &&
+                          env.serviceContactCreate &&
+                          (env.serviceContact.Name !== env.serviceContactCreate.Name ||
+                           env.serviceContact.IsExcludedFromCampaigns !== env.serviceContactCreate.IsExcludedFromCampaigns)) {
                     this._metricsClient.increment("ship.service_api.call", 1);
                     performedApiCall = true;
                     const contactApiResult = await this._svcClient.updateContact(env.serviceContactCreate.Email, env.serviceContactCreate);
@@ -117,13 +124,13 @@ class SyncAgent {
                     env.serviceContactData = contactDataApiResult.success ? _.first((contactDataApiResult.data as IMailjetPagedResult<IMailjetContactData>).Data) : undefined;
                 }
 
-                if (env.serviceContactListActions.ContactLists.length !== 0 && env.serviceContact !== undefined) 
+                if (env.serviceContactListActions.ContactsLists.length !== 0 && env.serviceContact !== undefined) 
                 {
                     this._metricsClient.increment("ship.service_api.call", 1);
                     performedApiCall = true;
                     const contactListSubscriptionsApiResult = await this._svcClient.manageContactListSubscriptions(env.serviceContact.ID, env.serviceContactListActions);
                     this.handleOutgoingApiResult(env, contactListSubscriptionsApiResult);
-                    env.serviceContactListActions = contactListSubscriptionsApiResult.success ? { ContactLists: (_.first((contactListSubscriptionsApiResult.data as IMailjetPagedResult<IMailjetContactListAction>).Data) as any) } : undefined;
+                    env.serviceContactListActions = contactListSubscriptionsApiResult.success ? { ContactsLists: (_.first((contactListSubscriptionsApiResult.data as IMailjetPagedResult<IMailjetContactListAction>).Data) as any) } : undefined;
                 }
 
                 if (performedApiCall && env.serviceContact !== undefined) {

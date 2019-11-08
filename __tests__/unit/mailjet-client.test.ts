@@ -1107,7 +1107,7 @@ describe("MailjetClient", () => {
         const apiResponse = _.cloneDeep(ApiresponseV3ContactManageContactLists);
         const url = `${BASE_URL}/v3/REST/contact/${contactId}/managecontactslists`;
         const actions: IMailjetContactListCrud = {
-            ContactLists: [
+            ContactsLists: [
                 {
                     "Action": "addnoforce",
                     "ListID": 1115
@@ -1147,7 +1147,7 @@ describe("MailjetClient", () => {
         const apiResponse = _.cloneDeep(ApiresponseV3Status404);
         const url = `${BASE_URL}/v3/REST/contact/${contactId}/managecontactslists`;
         const actions: IMailjetContactListCrud = {
-            ContactLists: [
+            ContactsLists: [
                 {
                     "Action": "addnoforce",
                     "ListID": 1115

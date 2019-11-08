@@ -69,7 +69,7 @@ const setupApiMockResponses = (nockFn: (basePath: string | RegExp | Url, options
         endpoint: url3,
         method: "insert",
         record: {
-            ContactLists: [
+            ContactsLists: [
                 {
                     "Action": "addnoforce",
                     "ListID": MJ_LIST1.ID

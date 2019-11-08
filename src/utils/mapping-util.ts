@@ -113,14 +113,14 @@ class MappingUtil {
         }) as number[];
         
         const mjObject: IMailjetContactListCrud = {
-            ContactLists: []
+            ContactsLists: []
         };
 
         // Determine the lists the contact needs to be subscribed to
         _.forEach(listIdsFromHullSegments, (lid) => {
             const matchingRecipient = _.find(recipients, { ListID: lid });
             if (_.isNil(matchingRecipient)) {
-                mjObject.ContactLists.push({
+                mjObject.ContactsLists.push({
                     Action: "addnoforce",
                     ListID: lid
                 });
@@ -134,7 +134,7 @@ class MappingUtil {
         _.forEach(recipients, (recipient) => {
             if (_.includes(listIdsFromHullSegments, recipient.ListID) === false &&
                 recipient.IsUnsubscribed === false) {
-                mjObject.ContactLists.push({
+                mjObject.ContactsLists.push({
                     Action: "unsub",
                     ListID: recipient.ListID
                 });

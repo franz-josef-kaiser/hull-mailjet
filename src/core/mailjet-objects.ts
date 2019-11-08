@@ -77,7 +77,7 @@ export interface IMailjetContactListAction {
 }
 
 export interface IMailjetContactListCrud {
-    ContactLists: IMailjetContactListAction[];
+    ContactsLists: IMailjetContactListAction[];
 }
 
 export interface IMailjetListRecipient {

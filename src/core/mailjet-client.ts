@@ -312,6 +312,9 @@ class MailjetClient {
         const url = `${this._apiBaseUrl}/contact/${mjIdent}/managecontactslists`;
         const method = "insert";
 
+        // tslint:disable-next-line:no-console
+        console.log(`>>> Manage lists for ${mjIdent}`, actions);
+
         const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
 
         try {
