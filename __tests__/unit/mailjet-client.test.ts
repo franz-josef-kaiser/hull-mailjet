@@ -136,7 +136,7 @@ describe("MailjetClient", () => {
 
     });
 
-    test("should query metadata for contact properties (status 200)", async () => {
+    test("should query metadata for contact lists (status 200)", async () => {
         const mjClientConfig: IMailjetClientConfig = {
             apiKey: "api1234",
             apiSecretKey: "secret56789"
@@ -166,7 +166,7 @@ describe("MailjetClient", () => {
 
     });
 
-    test("should query metadata for contact properties (status 200) with defaults", async () => {
+    test("should query metadata for contact lists (status 200) with defaults", async () => {
         const mjClientConfig: IMailjetClientConfig = {
             apiKey: "api1234",
             apiSecretKey: "secret56789"
@@ -196,7 +196,7 @@ describe("MailjetClient", () => {
 
     });
 
-    test("should query metadata for contact properties (status 429) and not throw", async () => {
+    test("should query metadata for contact lists (status 429) and not throw", async () => {
         const mjClientConfig: IMailjetClientConfig = {
             apiKey: "api1234",
             apiSecretKey: "secret56789"

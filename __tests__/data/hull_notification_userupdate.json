@@ -10,11 +10,7 @@
             "contact_attributes_outbound": [
                 {
                     "hull_field_name": "name",
-                    "service_field_name": "Name"
-                },
-                {
-                    "hull_field_name": "email",
-                    "service_field_name": "Email"
+                    "service_field_name": "Name__d"
                 }
             ],
             "api_key": "foo123",
@@ -93,7 +89,7 @@
                     "default": [
                         {
                             "hull_field_name": "name",
-                            "service_field_name": "Name"
+                            "service_field_name": "Name__d"
                         }
                     ],
                     "items": {

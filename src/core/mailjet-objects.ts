@@ -94,8 +94,9 @@ export interface IOperationEnvelope {
     msg: IHullUserUpdateMessage | IHullAccountUpdateMessage;
     serviceContactCreate?: IMailjetContactCreate;
     serviceContact?: IMailjetContact;
-    serviceContactData?: IMailjetContactData;
-    serviceContactListActions?: IMailjetContactListAction[];
+    serviceContactData?: IMailjetContactDataUpdate;
+    serviceContactListActions?: IMailjetContactListCrud;
+    serviceContactRecipients?: IMailjetListRecipient[];
     operation: "insert" | "update" | "skip";
     reason?: string;
 }

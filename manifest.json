@@ -12,6 +12,7 @@
     "version": "0.1.0",
     "source": "mailjet",
     "logo": "logo.png",
+    "icons": [],
     "ui": false,
     "settings": [],
     "private_settings": [
@@ -71,7 +72,7 @@
             "type" : "array",
             "format" : "table",
             "default" : [
-              { "hull_field_name" : "name", "service_field_name" : "Name" }
+              { "hull_field_name" : "name", "service_field_name" : "Name__d" }
             ],
             "items" : {
               "type" : "object",

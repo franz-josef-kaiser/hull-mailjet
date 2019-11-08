@@ -5,6 +5,11 @@
         "tslint-config-standard",
         "tslint-config-prettier"
     ],
+    "linterOptions": {
+        "exclude": [
+            "node_modules/**"
+        ]
+    },
     "jsRules": {},
     "rules": {
         "ordered-imports": false,
