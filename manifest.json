@@ -24,7 +24,7 @@
         },
         {
             "name": "api_secret_key",
-            "title": "API Prefix",
+            "title": "API Secret Key",
             "type": "string",
             "required": true
         },
@@ -98,7 +98,13 @@
             }
           }
     ],
-    "schedules": [],
+    "schedules": [
+      {
+        "url": "/status",
+        "type": "interval",
+        "value": "30"
+      }
+    ],
     "subscriptions": [
         {
             "url": "/smart-notifier"

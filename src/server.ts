@@ -31,6 +31,9 @@ const server = (app: Application): Application => {
     // CORS enabled endpoints for manifest.json
     app.get("/metadata/(:type)", cors(), actions.metadata);
 
+    // Status endpoint
+    app.use("/status", actions.status);
+
     return app;
 }
 

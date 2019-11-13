@@ -11,6 +11,7 @@ import FilterUtil from "../utils/filter-util";
 import MappingUtil from "../utils/mapping-util";
 import asyncForEach from "../utils/async-foreach";
 import IApiResultObject from "../types/api-result";
+import { STATUS_NOPRIVATESETTINGS, STATUS_NOAUTHN_APIKEY, STATUS_NOAUTHN_APISECRETKEY } from "./constants";
 
 class SyncAgent {
 
@@ -28,7 +29,10 @@ class SyncAgent {
         this._metricsClient = metricsClient;
         this._connector = connector;
         // Obtain the private settings from the connector and run some basic checks
-        const privateSettings: IPrivateSettings = _.get(connector, "private_settings") as IPrivateSettings;
+        const privateSettings: IPrivateSettings = _.get(connector, "private_settings", { 
+            contact_synchronized_segments: [],
+            contact_attributes_outbound: []
+        }) as IPrivateSettings;
         
         // Configure the Mailjet Client
         this._svcClientConfig = {
@@ -206,6 +210,44 @@ class SyncAgent {
     public isAuthNConfigured() {
         return this._svcClientConfig.apiKey !== "" &&
                 this._svcClientConfig.apiSecretKey !== "";
+    }
+
+    public async determineConnectorStatus(): Promise<{ status: string, messages: string[]}> {
+        const statusResponse: { status: string, messages: string[] } = {
+            status: "ok",
+            messages: []
+        };
+
+        const privateSettings: IPrivateSettings | undefined = _.get(this._connector, "private_settings", undefined);
+
+        if (this.isAuthNConfigured() === false) {
+            statusResponse.status = "setupRequired";
+            if (privateSettings !== undefined) {
+                if (_.isNil(privateSettings.api_key) === true ||
+                    (_.isNil(privateSettings.api_key) === false && privateSettings.api_key === "")) {
+                        statusResponse.messages.push(STATUS_NOAUTHN_APIKEY);
+                }
+
+                if (_.isNil(privateSettings.api_secret_key) === true ||
+                    (_.isNil(privateSettings.api_secret_key) === false && privateSettings.api_secret_key === "")) {
+                        statusResponse.messages.push(STATUS_NOAUTHN_APISECRETKEY);
+                }
+
+            } else {
+                // We cannot determine what is missing, so return a more generic error message
+                statusResponse.messages.push(STATUS_NOPRIVATESETTINGS);
+            }
+        }
+
+        if (statusResponse.status !== "setupRequired") {
+            // TODO: Perform additional health checks here
+        }
+
+        // Make the status available in the dashboard
+        await this._hullClient.put(`${this._connector.id}/status`, statusResponse);
+
+
+        return statusResponse;
     }
 
     private handleOutgoingApiResult<T, U>(envelope: IOperationEnvelope, apiResult: IApiResultObject<T, U>) {

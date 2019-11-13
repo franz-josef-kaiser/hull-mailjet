@@ -176,4 +176,31 @@ describe("SyncAgent", () => {
         ctxExpectationsFn(ctxMock, apiResponses);
         expect(nock.isDone()).toBe(true);                
     });
+
+    const statusScenariosToTest = [
+        'status_ok',
+        'status_setupRequired_apikey',
+        'status_setupRequired_apisecretkey',
+        'status_setupRequired_privatesettings'
+    ];
+    _.forEach(statusScenariosToTest, (scenarioName) => {
+        test(`should handle scenario '${scenarioName}'`, async() => {
+            const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/sn-payload`).default;
+            const smartNotifierPayload = payloadSetupFn();
+    
+            ctxMock.connector = smartNotifierPayload.connector;
+            ctxMock.ship = smartNotifierPayload.connector;
+    
+            const syncAgent = new SyncAgent(ctxMock.client, ctxMock.connector, ctxMock.metric);
+    
+            const apiResponseSetupFn: (nock: any) => IApiResponseNocked[] = require(`../_scenarios/${scenarioName}/api-responses`).default;
+            const apiResponses = apiResponseSetupFn(nock);
+    
+            await syncAgent.determineConnectorStatus();
+            const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
+            ctxExpectationsFn(ctxMock, apiResponses);
+            expect(nock.isDone()).toBe(true);                
+        });
+    });
+    
 });
