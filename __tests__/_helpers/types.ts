@@ -4,4 +4,5 @@ export interface IApiResponseNocked {
     method: "query" | "insert" | "update" | "delete";
     record: any;
     success: boolean;
+    error?: string | string[];
 }

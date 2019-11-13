@@ -12,7 +12,7 @@ const setupExpectations = (ctx: ContextMock, apiResponses: IApiResponseNocked[])
     // Check debug logs for API results
     expect((ctx.client.logger.debug as any).mock.calls).toHaveLength(_.filter(apiResponses, { success: true }).length); // Successful API calls only
     for (let index = 0; index < _.filter(apiResponses, { success: true}).length; index++) {
-        const element = apiResponses[index];
+        const element = _.filter(apiResponses, { success: true })[index];
         expect((ctx.client.logger.debug as any).mock.calls[index]).toEqual([
             "outgoing.user.success",
             element
@@ -20,8 +20,9 @@ const setupExpectations = (ctx: ContextMock, apiResponses: IApiResponseNocked[])
     }
     // Check error logs for API results
     expect((ctx.client.logger.error as any).mock.calls).toHaveLength(_.filter(apiResponses, { success: false }).length); // Failed API calls only
+    
     for (let index = 0; index < _.filter(apiResponses, { success: false }).length; index++) {
-        const element = apiResponses[index];
+        const element = _.filter(apiResponses, { success: false })[index];
         expect((ctx.client.logger.error as any).mock.calls[index]).toEqual([
             "outgoing.user.error",
             element

@@ -34,7 +34,7 @@ class SyncAgent {
         this._svcClientConfig = {
             apiKey: privateSettings.api_key || "",
             apiSecretKey: privateSettings.api_secret_key || ""
-        }
+        };
         this._svcClient = new MailjetClient(this._svcClientConfig);
         // Configure the utilities
         this._filterUtil = new FilterUtil(privateSettings);
@@ -42,6 +42,10 @@ class SyncAgent {
     }
 
     public async sendUserMessages(messages: IHullUserUpdateMessage[], isBatch: boolean = false): Promise<any> {
+        if (this.isAuthNConfigured() === false) {
+            return Promise.resolve(true);
+        }
+
         // [STEP 1] Filter messages
         const filteredEnvelopes = this._filterUtil.filterUserMessages(messages, isBatch);
         const envelopesToSkip = _.filter(filteredEnvelopes, (envelope) => {
@@ -109,7 +113,8 @@ class SyncAgent {
                            env.serviceContact.IsExcludedFromCampaigns !== env.serviceContactCreate.IsExcludedFromCampaigns)) {
                     this._metricsClient.increment("ship.service_api.call", 1);
                     performedApiCall = true;
-                    const contactApiResult = await this._svcClient.updateContact(env.serviceContactCreate.Email, env.serviceContactCreate);
+                    const contactApiResult = await this._svcClient.updateContact(env.serviceContactCreate.Email, 
+                        _.pick(env.serviceContactCreate, ["IsExcludedFromCampaigns", "Name"]));
                     this.handleOutgoingApiResult(env, contactApiResult);
                     env.serviceContact = contactApiResult.success && (contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Count === 1 ?
                         _.first((contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Data) : undefined;
@@ -218,11 +223,11 @@ class SyncAgent {
         
     }
 
-    private handleOutgoingError(envelope: IOperationEnvelope, message: string, error: any) {
+    private handleOutgoingError(envelope: IOperationEnvelope, message: string, error: Error) {
         const userIdent = _.pick((envelope.msg as IHullUserUpdateMessage).user, ["id", "external_id", "email"]);
         this._hullClient.asUser(userIdent)
             .logger
-            .error(message, { error });
+            .error(message, { errorMessage: error.message, errorName: error.name });
     }
 }
 

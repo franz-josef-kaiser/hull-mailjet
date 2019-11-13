@@ -8,29 +8,31 @@ import ApiresponseV3ContactPost from "../../data/apiresponse_v3_postcontact.json
 import ApiresponseV3ContactManageContactLists from "../../data/apiresponse_v3_managecontactslists.json";
 import ApiresponseV3ContactDataById from "../../data/apiresponse_v3_contactdatabyid.json";
 import ApiresponseV3ContactGetSubscriberIds from "../../data/apiresponse_v3_listrecipient.json";
+import ApiresponseV3Status404 from "../../data/apiresponse_v3_status404.json";
 import { IApiResponseNocked } from "../../_helpers/types";
 
 const setupApiMockResponses = (nockFn: (basePath: string | RegExp | Url, options?: nock.Options | undefined) => nock.Scope): IApiResponseNocked[] => {
     const apiResponses: IApiResponseNocked[] = [];
 
     // GET Contact By Id (via email)
-    const responseBody1 = _.cloneDeep(ApiresponseV3ContactById);
-    responseBody1.Count = 0;
-    responseBody1.Total = 0;
-    responseBody1.Data = [];
+    const responseBody1 = _.cloneDeep(ApiresponseV3Status404);
     const url1 = `${API_BASE_URL}/v3/REST/contact/${MJ_IDENT1_EMAIL}`;
 
     nockFn(`${API_BASE_URL}`)
         .matchHeader('Authorization', AUTH_HEADER_CHECK)
         .get(`/v3/REST/contact/${MJ_IDENT1_EMAIL}`)
-        .reply(200, responseBody1);
+        .reply(404, responseBody1);
     
     apiResponses.push({
         data: responseBody1,
         endpoint: url1,
         method: "query",
         record: undefined,
-        success: true
+        success: false,
+        error: [
+            "Request failed with status code 404",
+            "Object not found"
+        ]
     });
 
     // POST Contact

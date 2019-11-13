@@ -2,11 +2,10 @@ import nock from "nock";
 import { Url } from "url";
 import _ from "lodash";
 
-import { API_BASE_URL, MJ_IDENT1_EMAIL, AUTH_HEADER_CHECK, MJ_IDENT1_ID, HULL_USER_NAME1, HULL_USER_JOBTITLE1, MJ_LIST2, MJ_LISTRECIPS1 } from "../../_helpers/constants";
+import { API_BASE_URL, MJ_IDENT1_EMAIL, AUTH_HEADER_CHECK, MJ_IDENT1_ID, HULL_USER_NAME1, HULL_USER_JOBTITLE1 } from "../../_helpers/constants";
 import ApiresponseV3ContactById from "../../data/apiresponse_v3_contactbyid.json";
 import ApiresponseV3ContactGetSubscriberIds from "../../data/apiresponse_v3_listrecipient.json";
 import ApiresponseV3ContactDataById from "../../data/apiresponse_v3_contactdatabyid.json";
-import ApiresponseV3ContactManageContactLists from "../../data/apiresponse_v3_managecontactslists.json";
 import { IApiResponseNocked } from "../../_helpers/types";
 
 const setupApiMockResponses = (nockFn: (basePath: string | RegExp | Url, options?: nock.Options | undefined) => nock.Scope): IApiResponseNocked[] => {
@@ -53,27 +52,32 @@ const setupApiMockResponses = (nockFn: (basePath: string | RegExp | Url, options
         success: true
     });
 
-    // POST Contact Manage Contacts Lists 
-    const apiResponse3 = _.cloneDeep(ApiresponseV3ContactManageContactLists);
-    apiResponse3.Data[0].ContactsLists.push({
-        Action: "addnoforce",
-        ListID: MJ_LIST2.ID
-    });
-    const url3 = `${API_BASE_URL}/v3/REST/contact/${MJ_IDENT1_ID}/managecontactslists`;
+    // PUT Contact Data
+    const responseBody2 = _.cloneDeep(ApiresponseV3ContactDataById);
+    responseBody2.Data[0].ID = MJ_IDENT1_ID;
+    responseBody2.Data[0].ContactID = MJ_IDENT1_ID;
+    responseBody2.Data[0].Data = [
+        {
+            "Name": "job_title",
+            "Value": HULL_USER_JOBTITLE1
+        }
+    ];
+    const url2 = `${API_BASE_URL}/v3/REST/contactdata/${MJ_IDENT1_ID}`;
+
     nockFn(`${API_BASE_URL}`)
         .matchHeader('Authorization', AUTH_HEADER_CHECK)
-        .post(`/v3/REST/contact/${MJ_IDENT1_ID}/managecontactslists`)
-        .reply(201, apiResponse3);
+        .put(`/v3/REST/contactdata/${MJ_IDENT1_ID}`)            
+        .reply(200, responseBody2)
     
     apiResponses.push({
-        data: apiResponse3,
-        endpoint: url3,
-        method: "insert",
+        data: responseBody2,
+        endpoint: url2,
+        method: "update",
         record: {
-            ContactsLists: [
+            Data: [
                 {
-                    "Action": "addnoforce",
-                    "ListID": MJ_LIST2.ID
+                    "Name": "job_title",
+                    "Value": HULL_USER_JOBTITLE1
                 }
             ]
         },
@@ -84,28 +88,35 @@ const setupApiMockResponses = (nockFn: (basePath: string | RegExp | Url, options
     const responseBody4 = _.cloneDeep(ApiresponseV3ContactDataById);
     responseBody4.Data[0].ID = MJ_IDENT1_ID;
     responseBody4.Data[0].ContactID = MJ_IDENT1_ID;
-    responseBody4.Data[0].Data = [];
+    responseBody4.Data[0].Data = [
+        {
+            "Name": "job_title",
+            "Value": HULL_USER_JOBTITLE1
+        }
+    ];
     const url4 = `${API_BASE_URL}/v3/REST/contactdata/${MJ_IDENT1_ID}`;
 
     apiResponses.push({
-        data: responseBody4,
+        data: "",
         endpoint: url4,
         method: "query",
         record: undefined,
-        success: true
+        success: false,
+        error: [
+            "Request failed with status code 429"
+        ]
     });
 
     nockFn(`${API_BASE_URL}`)
         .matchHeader('Authorization', AUTH_HEADER_CHECK)
         .get(`/v3/REST/contactdata/${MJ_IDENT1_ID}`)
-        .reply(200, responseBody4);
+        .reply(429);
 
     // GET List Recipients with Contact ID
     const limit5 = 1000;
     const offset5 = 0;
     const responseBody5 = _.cloneDeep(ApiresponseV3ContactGetSubscriberIds);
     responseBody5.Data[0].ContactID = MJ_IDENT1_ID;
-    responseBody5.Data = MJ_LISTRECIPS1;
     const url5 = `${API_BASE_URL}/v3/REST/listrecipient?Limit=${limit5}&Offset=${offset5}&Contact=${MJ_IDENT1_ID}`;
 
     nockFn(`${API_BASE_URL}`)

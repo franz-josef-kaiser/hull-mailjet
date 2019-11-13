@@ -108,7 +108,14 @@ describe("SyncAgent", () => {
     });
 
     const scenariosToTest: string[] = [
-        "create_contact"
+        "create_contact",
+        "update_contact",
+        "update_contactdata",
+        "update_subscriptions",
+        "skip_noemail",
+        "skip_noauthn",
+        "update_contactdata_failgetcontactdata",
+        "update_subscriptions_failgetrecipients",
     ];
 
     _.forEach(scenariosToTest, (scenarioName) => {
@@ -129,5 +136,44 @@ describe("SyncAgent", () => {
             ctxExpectationsFn(ctxMock, apiResponses);
             expect(nock.isDone()).toBe(true);                
         });
+    });
+
+    test(`should handle scenario 'skip_batch`, async() => {
+        const scenarioName = 'skip_batch';
+        const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/sn-payload`).default;
+        const smartNotifierPayload = payloadSetupFn();
+
+        ctxMock.connector = smartNotifierPayload.connector;
+        ctxMock.ship = smartNotifierPayload.connector;
+
+        const syncAgent = new SyncAgent(ctxMock.client, ctxMock.connector, ctxMock.metric);
+
+        const apiResponseSetupFn: (nock: any) => IApiResponseNocked[] = require(`../_scenarios/${scenarioName}/api-responses`).default;
+        const apiResponses = apiResponseSetupFn(nock);
+
+        await syncAgent.sendUserMessages(smartNotifierPayload.messages, true);
+        const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
+        ctxExpectationsFn(ctxMock, apiResponses);
+        expect(nock.isDone()).toBe(true);                
+    });
+
+    test(`should handle scenario 'handle_unexpectederror`, async() => {
+        const scenarioName = 'handle_unexpectederror';
+        const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/sn-payload`).default;
+        const smartNotifierPayload = payloadSetupFn();
+
+        ctxMock.connector = smartNotifierPayload.connector;
+        ctxMock.ship = smartNotifierPayload.connector;
+        ctxMock.metric = null;
+
+        const syncAgent = new SyncAgent(ctxMock.client, ctxMock.connector, ctxMock.metric);
+
+        const apiResponseSetupFn: (nock: any) => IApiResponseNocked[] = require(`../_scenarios/${scenarioName}/api-responses`).default;
+        const apiResponses = apiResponseSetupFn(nock);
+
+        await syncAgent.sendUserMessages(smartNotifierPayload.messages);
+        const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
+        ctxExpectationsFn(ctxMock, apiResponses);
+        expect(nock.isDone()).toBe(true);                
     });
 });

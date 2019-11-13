@@ -2,7 +2,7 @@ import _ from "lodash";
 import IPrivateSettings, { ISegmentToContactListMappingEntry } from "../types/private-settings";
 import IHullUserUpdateMessage from "../types/user-update-message";
 import { IOperationEnvelope } from "../core/mailjet-objects";
-import { SKIP_REASON_NOEMAIL } from "../core/constants";
+import { SKIP_REASON_NOEMAIL, SKIP_REASON_BATCH } from "../core/constants";
 
 class FilterUtil {
 
@@ -19,7 +19,7 @@ class FilterUtil {
                 envelopes.push({
                     msg: message,
                     operation: "skip",
-                    reason: "Batch is not supported at the moment."
+                    reason: SKIP_REASON_BATCH
                 });
             });
         } else {

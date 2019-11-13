@@ -111,14 +111,17 @@ const setupApiMockResponses = (nockFn: (basePath: string | RegExp | Url, options
     nockFn(`${API_BASE_URL}`)
         .matchHeader('Authorization', AUTH_HEADER_CHECK)
         .get(`/v3/REST/listrecipient?Limit=${limit5}&Offset=${offset5}&Contact=${MJ_IDENT1_ID}`)
-        .reply(200, responseBody5);
+        .reply(429);
 
     apiResponses.push({
-        data: responseBody5,
+        data: "",
         endpoint: url5,
         method: "query",
         record: undefined,
-        success: true
+        success: false,
+        error: [
+            "Request failed with status code 429"
+        ]
     });
 
 
