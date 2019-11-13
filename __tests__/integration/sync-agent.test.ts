@@ -239,5 +239,27 @@ describe("SyncAgent", () => {
             expect(nock.isDone()).toBe(true);                
         });
     });
+
+    test(`should handle scenario 'webhook_test'`, async() => {
+        const scenarioName = 'webhook_test';
+        const webhookPayload: IMailjetEvent = require(`../data/${scenarioName}.json`);
+        webhookPayload.MessageID = MJ_EVENT_ID;
+        webhookPayload.Message_GUID = MJ_EVENT_GUID;
+        webhookPayload.email = "";
+        webhookPayload.mj_campaign_id = MJ_EVENT_CAMPAIGNID;
+        webhookPayload.mj_contact_id = 0;
+        webhookPayload.time = MJ_EVENT_TIME;
+        
+
+        const syncAgent = new SyncAgent(ctxMock.client, ctxMock.connector, ctxMock.metric);
+
+        const apiResponseSetupFn: (nock: any) => IApiResponseNocked[] = require(`../_scenarios/${scenarioName}/api-responses`).default;
+        const apiResponses = apiResponseSetupFn(nock);
+
+        await syncAgent.handleEventCallbacks(webhookPayload);
+        const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
+        ctxExpectationsFn(ctxMock, apiResponses);
+        expect(nock.isDone()).toBe(true);                
+    });
     
 });
