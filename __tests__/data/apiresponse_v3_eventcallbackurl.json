@@ -1,0 +1,15 @@
+{
+    "Count": 1,
+    "Data": [
+        {
+            "APIKeyID": 123456,
+            "EventType": "open",
+            "ID": 340938,
+            "IsBackup": false,
+            "Status": "alive",
+            "Url": "https://1234:56789@mailjet.hullapp.net/eventcallback?org=foo.hullapp.io",
+            "Version": 1
+        }
+    ],
+    "Total": 1
+}

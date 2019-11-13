@@ -2,7 +2,7 @@ import _ from "lodash";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import IApiResultObject from "../types/api-result";
 import IMailjetClientConfig from "./mailjet-client-config";
-import { IMailjetPagedResult, IMailjetContactProperty, IMailjetContactList, IMailjetContact, IMailjetContactCreate, IMailjetContactUpdate, IMailjetContactData, IMailjetContactDataUpdate, IMailjetContactListMembership, IMailjetListRecipient, IMailjetContactListCrud, IMailjetContactListAction } from "./mailjet-objects";
+import { IMailjetPagedResult, IMailjetContactProperty, IMailjetContactList, IMailjetContact, IMailjetContactCreate, IMailjetContactUpdate, IMailjetContactData, IMailjetContactDataUpdate, IMailjetContactListMembership, IMailjetListRecipient, IMailjetContactListCrud, IMailjetContactListAction, IMailjetEventCallbackUrlCreate, IMailjetEventCallbackUrl } from "./mailjet-objects";
 
 const API_BASE_URL = `https://api.mailjet.com/v3/REST`;
 
@@ -485,6 +485,118 @@ class MailjetClient {
 
             const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetContactProperty>, any> = 
                 this.createApiErrorResult<IMailjetPagedResult<IMailjetContactProperty>, any>(url, method, axiosError);
+
+            return apiResult;
+        }
+    }
+
+    /**
+     * Add a new callback URL used as a webhook to track different email actions.
+     * see https://dev.mailjet.com/email/reference/webhook/#v3_post_eventcallbackurl
+     *
+     * @param {IMailjetEventCallbackUrlCreate} record The information about the callback URL.
+     * @returns {Promise<IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, IMailjetEventCallbackUrlCreate>>} An API result with the paged callback URLs.
+     * @memberof MailjetClient
+     */
+    public async createEventCallback(record: IMailjetEventCallbackUrlCreate): Promise<IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, IMailjetEventCallbackUrlCreate>> {
+        const url = `${this._apiBaseUrl}/eventcallbackurl`;
+        const method = "insert";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.post(url, record, axiosConfig);
+        
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, IMailjetEventCallbackUrlCreate> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: undefined,
+                method,
+                record,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, IMailjetEventCallbackUrlCreate> = 
+                this.createApiErrorResult<IMailjetPagedResult<IMailjetEventCallbackUrl>, IMailjetEventCallbackUrlCreate>(url, method, axiosError);
+
+            return apiResult;
+        }
+    }
+
+    /**
+     * Delete an existing callback URL.
+     * see https://dev.mailjet.com/email/reference/webhook/#v3_delete_eventcallbackurl_url_ID
+     *
+     * @param {number} mjIdent The unique numeric ID for the callback URL you want to delete.
+     * @returns {Promise<IApiResultObject<boolean, number>>} An API result indicating the deletion result.
+     * @memberof MailjetClient
+     */
+    public async deleteEventCallback(mjIdent: number): Promise<IApiResultObject<boolean, number>> {
+        const url = `${this._apiBaseUrl}/eventcallbackurl/${mjIdent}`;
+        const method = "delete";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.delete(url, axiosConfig);
+        
+            const apiResult: IApiResultObject<boolean, number> = {
+                data: true,
+                endpoint: url,
+                error: undefined,
+                method,
+                record: mjIdent,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<boolean, number> = 
+                this.createApiErrorResult<boolean, number>(url, method, axiosError);
+
+            return apiResult;
+        }
+    }
+
+    /**
+     * Retrieve a list of all callback URL objects and their configuration settings.
+     * see https://dev.mailjet.com/email/reference/webhook/#v3_get_eventcallbackurl
+     *
+     * @param {number} [offset=0] The list offset for pagination, defaults to zero.
+     * @param {number} [limit=1000] The page size for pagination, defaults to 1000.
+     * @returns {Promise<IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, any>>} An API result with the paged callback URLs.
+     * @memberof MailjetClient
+     */
+    public async listEventCallbacks(offset: number = 0, limit: number = 1000): Promise<IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, any>> {
+        const url = `${this._apiBaseUrl}/eventcallbackurl?Limit=${limit}&Offset=${offset}`;
+        const method = "query";
+
+        const axiosConfig: AxiosRequestConfig = this.createAxiosRequestConfig();
+
+        try {
+            const axiosResponse = await axios.get(url, axiosConfig);
+        
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, any> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: undefined,
+                method,
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosError = error as AxiosError;
+
+            const apiResult: IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, any> = 
+                this.createApiErrorResult<IMailjetPagedResult<IMailjetEventCallbackUrl>, any>(url, method, axiosError);
 
             return apiResult;
         }

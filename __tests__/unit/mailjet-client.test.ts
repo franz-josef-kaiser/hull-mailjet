@@ -3,7 +3,7 @@ import _ from "lodash";
 
 import IMailjetClientConfig from "../../src/core/mailjet-client-config";
 import IApiResultObject from "../../src/types/api-result";
-import { IMailjetPagedResult, IMailjetContactProperty, IMailjetContactList, IMailjetContact, IMailjetContactCreate, IMailjetContactUpdate, IMailjetContactDataUpdate, IMailjetContactData, IMailjetContactListMembership, IMailjetContactListCrud, IMailjetContactListAction } from "../../src/core/mailjet-objects";
+import { IMailjetPagedResult, IMailjetContactProperty, IMailjetContactList, IMailjetContact, IMailjetContactCreate, IMailjetContactUpdate, IMailjetContactDataUpdate, IMailjetContactData, IMailjetContactListMembership, IMailjetContactListCrud, IMailjetContactListAction, IMailjetEventCallbackUrlCreate, IMailjetEventCallbackUrl } from "../../src/core/mailjet-objects";
 import MailjetClient from "../../src/core/mailjet-client";
 
 import ApiresponseV3Contactmetadata from "../data/apiresponse_v3_contactmetadata.json";
@@ -18,6 +18,8 @@ import ApiresponseV3ContactDataByIdInvalidKey from "../data/apiresponse_v3_conta
 import ApiresponseV3ContactGetListSubscriptions from "../data/apiresponse_v3_contact_getcontactlists.json";
 import ApiresponseV3ContactGetSubscriberIds from "../data/apiresponse_v3_listrecipient.json";
 import ApiresponseV3ContactManageContactLists from "../data/apiresponse_v3_managecontactslists.json";
+import ApiresponseV3EventCallbackUrlPost from "../data/apiresponse_v3_posteventcallbackurl.json";
+import ApiresponseV3EventCallbackUrl from "../data/apiresponse_v3_eventcallbackurl.json";
 import ApiresponseV3Status404 from "../data/apiresponse_v3_status404.json";
 
 
@@ -1177,6 +1179,235 @@ describe("MailjetClient", () => {
 
         const client = new MailjetClient(mjClientConfig);
         const actual = await client.manageContactListSubscriptions(contactId, actions);
+        expect(actual).toEqual(expected);
+
+    });
+
+    test("should create an eventcallbackurl (status 201)", async () => {
+        const mjClientConfig: IMailjetClientConfig = {
+            apiKey: "api1234",
+            apiSecretKey: "secret56789"
+        };
+        
+        const record: IMailjetEventCallbackUrlCreate = {
+            EventType: "open",
+            IsBackup: false,
+            Status: "alive",
+            Url: "https://1234:56789@mailjet.hullapp.net/eventcallback?org=foo.hullapp.io"
+        };
+
+        const responseBody = _.cloneDeep(ApiresponseV3EventCallbackUrlPost);
+        responseBody.Data[0].EventType = record.EventType;
+        responseBody.Data[0].IsBackup = record.IsBackup;
+        responseBody.Data[0].Status = record.Status;
+        responseBody.Data[0].Url = record.Url;
+        const url = `${BASE_URL}/v3/REST/eventcallbackurl`;
+
+        nock(`${BASE_URL}`)
+            .matchHeader('Authorization', AUTH_HEADER)
+            .post(`/v3/REST/eventcallbackurl`)            
+            .reply(201, responseBody);
+
+        const expected: IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, IMailjetEventCallbackUrlCreate> = {
+            data: responseBody,
+            endpoint: url,
+            method: "insert",
+            record,
+            success: true
+        };
+
+        const client = new MailjetClient(mjClientConfig);
+        const actual = await client.createEventCallback(record);
+        expect(actual).toEqual(expected);
+
+    });
+
+    test("should create an eventcallbackurl (status 429) and not throw", async () => {
+        const mjClientConfig: IMailjetClientConfig = {
+            apiKey: "api1234",
+            apiSecretKey: "secret56789"
+        };
+        
+        const record: IMailjetEventCallbackUrlCreate = {
+            EventType: "open",
+            IsBackup: false,
+            Status: "alive",
+            Url: "https://1234:56789@mailjet.hullapp.net/eventcallback?org=foo.hullapp.io"
+        };
+
+        const url = `${BASE_URL}/v3/REST/eventcallbackurl`;
+
+        nock(`${BASE_URL}`)
+            .matchHeader('Authorization', AUTH_HEADER)
+            .post(`/v3/REST/eventcallbackurl`)            
+            .reply(429);
+
+        const expected: IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, IMailjetEventCallbackUrlCreate> = {
+            data: "",
+            endpoint: url,
+            method: "insert",
+            record: undefined,
+            success: false,
+            error: [
+                "Request failed with status code 429"
+            ]
+        };
+
+        const client = new MailjetClient(mjClientConfig);
+        const actual = await client.createEventCallback(record);
+        expect(actual).toEqual(expected);
+
+    });
+
+    test("should delete an eventcallbackurl (status 204)", async () => {
+        const mjClientConfig: IMailjetClientConfig = {
+            apiKey: "api1234",
+            apiSecretKey: "secret56789"
+        };
+        
+        const mjIdent = 1234;
+        const url = `${BASE_URL}/v3/REST/eventcallbackurl/${mjIdent}`;
+
+        nock(`${BASE_URL}`)
+            .matchHeader('Authorization', AUTH_HEADER)
+            .delete(`/v3/REST/eventcallbackurl/${mjIdent}`)            
+            .reply(204);
+
+        const expected: IApiResultObject<boolean, number> = {
+            data: true,
+            endpoint: url,
+            method: "delete",
+            record: mjIdent,
+            success: true
+        };
+
+        const client = new MailjetClient(mjClientConfig);
+        const actual = await client.deleteEventCallback(mjIdent);
+        expect(actual).toEqual(expected);
+
+    });
+
+    test("should delete an eventcallbackurl (status 404) and not throw", async () => {
+        const mjClientConfig: IMailjetClientConfig = {
+            apiKey: "api1234",
+            apiSecretKey: "secret56789"
+        };
+        
+        const mjIdent = 1234;
+        const apiResponse = _.cloneDeep(ApiresponseV3Status404);
+        const url = `${BASE_URL}/v3/REST/eventcallbackurl/${mjIdent}`;
+
+        nock(`${BASE_URL}`)
+            .matchHeader('Authorization', AUTH_HEADER)
+            .delete(`/v3/REST/eventcallbackurl/${mjIdent}`)            
+            .reply(404, apiResponse);
+
+        const expected: IApiResultObject<boolean, number> = {
+            data: apiResponse,
+            endpoint: url,
+            method: "delete",
+            record: undefined,
+            success: false,
+            error: [
+                "Request failed with status code 404",
+                "Object not found"
+            ]
+        };
+
+        const client = new MailjetClient(mjClientConfig);
+        const actual = await client.deleteEventCallback(mjIdent);
+        expect(actual).toEqual(expected);
+
+    });
+
+    test("should get the list of eventcallbackurls (status 200)", async () => {
+        const mjClientConfig: IMailjetClientConfig = {
+            apiKey: "api1234",
+            apiSecretKey: "secret56789"
+        };
+
+        const offset = 10;
+        const limit = 99;
+        const responseBody = _.cloneDeep(ApiresponseV3EventCallbackUrl);
+        const url = `${BASE_URL}/v3/REST/eventcallbackurl?Limit=${limit}&Offset=${offset}`;
+
+        nock(`${BASE_URL}`)
+            .matchHeader('Authorization', AUTH_HEADER)
+            .get(`/v3/REST/eventcallbackurl?Limit=${limit}&Offset=${offset}`)            
+            .reply(200, responseBody);
+
+        const expected: IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, any> = {
+            data: responseBody,
+            endpoint: url,
+            method: "query",
+            record: undefined,
+            success: true
+        };
+
+        const client = new MailjetClient(mjClientConfig);
+        const actual = await client.listEventCallbacks(offset, limit);
+        expect(actual).toEqual(expected);
+
+    });
+
+    test("should get the list of eventcallbackurls (status 200) with defaults", async () => {
+        const mjClientConfig: IMailjetClientConfig = {
+            apiKey: "api1234",
+            apiSecretKey: "secret56789"
+        };
+
+        const offset = 0;
+        const limit = 1000;
+        const responseBody = _.cloneDeep(ApiresponseV3EventCallbackUrl);
+        const url = `${BASE_URL}/v3/REST/eventcallbackurl?Limit=${limit}&Offset=${offset}`;
+
+        nock(`${BASE_URL}`)
+            .matchHeader('Authorization', AUTH_HEADER)
+            .get(`/v3/REST/eventcallbackurl?Limit=${limit}&Offset=${offset}`)            
+            .reply(200, responseBody);
+
+        const expected: IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, any> = {
+            data: responseBody,
+            endpoint: url,
+            method: "query",
+            record: undefined,
+            success: true
+        };
+
+        const client = new MailjetClient(mjClientConfig);
+        const actual = await client.listEventCallbacks();
+        expect(actual).toEqual(expected);
+
+    });
+
+    test("should get the list of eventcallbackurls (status 429) and not throw", async () => {
+        const mjClientConfig: IMailjetClientConfig = {
+            apiKey: "api1234",
+            apiSecretKey: "secret56789"
+        };
+
+        const offset = 10;
+        const limit = 99;
+        const url = `${BASE_URL}/v3/REST/eventcallbackurl?Limit=${limit}&Offset=${offset}`;
+
+        nock(`${BASE_URL}`)
+            .matchHeader('Authorization', AUTH_HEADER)
+            .get(`/v3/REST/eventcallbackurl?Limit=${limit}&Offset=${offset}`)            
+            .reply(429);
+
+        const expected: IApiResultObject<IMailjetPagedResult<IMailjetEventCallbackUrl>, any> = {
+            data: "",
+            endpoint: url,
+            method: "query",
+            record: undefined,
+            success: false,
+            error: [
+                "Request failed with status code 429"
+            ]
+        };
+
+        const client = new MailjetClient(mjClientConfig);
+        const actual = await client.listEventCallbacks(offset, limit);
         expect(actual).toEqual(expected);
 
     });
