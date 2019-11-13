@@ -1,8 +1,11 @@
 import _ from "lodash";
-import { Application } from "express";
+import express, { Application, RequestHandler } from "express";
 import cors from "cors";
 import { smartNotifierHandler } from "hull/lib/utils";
 import actions from "./actions";
+import * as basicAuth from 'express-basic-auth'
+import { ParamsDictionary } from "express-serve-static-core";
+import authMiddleware from "./utils/auth-middleware";
 
 const server = (app: Application): Application => {
     // Hull platform handler endpoints
@@ -33,6 +36,9 @@ const server = (app: Application): Application => {
 
     // Status endpoint
     app.use("/status", actions.status);
+
+    app.use(express.json());
+    app.use("/eventcallback", cors(), authMiddleware , actions.eventCallback);
 
     return app;
 }

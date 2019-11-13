@@ -79,3 +79,8 @@ export const MJ_LISTRECIPS1 = [
         "UnsubscribedAt": ""
     }
 ];
+
+export const MJ_EVENT_ID = 19421777835146490;
+export const MJ_EVENT_GUID = "1ab23cd4-e567-8901-2345-6789f0gh1i2j";
+export const MJ_EVENT_TIME = 1433333949;
+export const MJ_EVENT_CAMPAIGNID = 7257;

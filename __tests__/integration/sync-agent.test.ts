@@ -7,6 +7,8 @@ import IPrivateSettings from "../../src/types/private-settings";
 import ApiresponseV3Contactmetadata from "../data/apiresponse_v3_contactmetadata.json";
 import ApiresponseV3Contactslist from "../data/apiresponse_v3_contactslist.json";
 import { IApiResponseNocked } from "../_helpers/types";
+import { IMailjetEvent } from "../../src/core/mailjet-objects";
+import { MJ_EVENT_ID, MJ_EVENT_GUID, MJ_IDENT1_EMAIL, MJ_EVENT_CAMPAIGNID, MJ_IDENT1_ID, MJ_EVENT_TIME } from "../_helpers/constants";
 
 const AUTH_HEADER = "Basic YXBpMTIzNDpzZWNyZXQ1Njc4OQ==";
 const BASE_URL = 'https://api.mailjet.com';
@@ -197,6 +199,41 @@ describe("SyncAgent", () => {
             const apiResponses = apiResponseSetupFn(nock);
     
             await syncAgent.determineConnectorStatus();
+            const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
+            ctxExpectationsFn(ctxMock, apiResponses);
+            expect(nock.isDone()).toBe(true);                
+        });
+    });
+
+    const webhookScenariosToTest = [
+        'webhook_sent',
+        'webhook_open',
+        'webhook_click',
+        'webhook_bounce',
+        'webhook_blocked',
+        'webhook_spam',
+        'webhook_unsub',
+        'webhook_unknown'
+    ];
+
+    _.forEach(webhookScenariosToTest, (scenarioName) => {
+        test(`should handle scenario '${scenarioName}'`, async() => {
+
+            const webhookPayload: IMailjetEvent = require(`../data/${scenarioName}.json`);
+            webhookPayload.MessageID = MJ_EVENT_ID;
+            webhookPayload.Message_GUID = MJ_EVENT_GUID;
+            webhookPayload.email = MJ_IDENT1_EMAIL;
+            webhookPayload.mj_campaign_id = MJ_EVENT_CAMPAIGNID;
+            webhookPayload.mj_contact_id = MJ_IDENT1_ID;
+            webhookPayload.time = MJ_EVENT_TIME;
+            
+    
+            const syncAgent = new SyncAgent(ctxMock.client, ctxMock.connector, ctxMock.metric);
+    
+            const apiResponseSetupFn: (nock: any) => IApiResponseNocked[] = require(`../_scenarios/${scenarioName}/api-responses`).default;
+            const apiResponses = apiResponseSetupFn(nock);
+    
+            await syncAgent.handleEventCallbacks(webhookPayload);
             const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
             ctxExpectationsFn(ctxMock, apiResponses);
             expect(nock.isDone()).toBe(true);                

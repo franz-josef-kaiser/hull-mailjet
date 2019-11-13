@@ -37,6 +37,7 @@
     "axios": "^0.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "express-basic-auth": "^1.2.0",
     "hull": "^0.13.20",
     "lodash": "^4.17.15",
     "newrelic": "^6.0.0",

@@ -1,7 +1,7 @@
 import { StringLiteral } from "babel-types";
 
 export interface IHullUserEventProps {
-    [propName: string]: string;
+    [propName: string]: string | number | boolean;
 }
 
 export interface IHullUserEventContext {

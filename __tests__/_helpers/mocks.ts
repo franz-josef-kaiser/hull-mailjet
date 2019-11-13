@@ -28,7 +28,8 @@ const ClientMock: any = jest.fn<IHullClient, []>(() => ({
     post: jest.fn(() => Promise.resolve()),
     put: jest.fn(() => Promise.resolve()),
     utils: {},
-    traits: jest.fn(() => Promise.resolve())
+    traits: jest.fn(() => Promise.resolve()),
+    track: jest.fn(() => Promise.resolve())
 }));
 
 class ConnectorMock {

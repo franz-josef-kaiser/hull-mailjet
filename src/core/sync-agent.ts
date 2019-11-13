@@ -6,12 +6,12 @@ import IHullClient from "../types/hull-client";
 import IPrivateSettings from "../types/private-settings";
 import MailjetClient from "./mailjet-client";
 import IMailjetClientConfig from "./mailjet-client-config";
-import { IMailjetPagedResult, IMailjetContactProperty, IMailjetContactList, IOperationEnvelope, IMailjetListRecipient, IMailjetContact, IMailjetContactData, IMailjetContactListAction } from "./mailjet-objects";
+import { IMailjetPagedResult, IMailjetContactProperty, IMailjetContactList, IOperationEnvelope, IMailjetListRecipient, IMailjetContact, IMailjetContactData, IMailjetContactListAction, IMailjetEvent } from "./mailjet-objects";
 import FilterUtil from "../utils/filter-util";
 import MappingUtil from "../utils/mapping-util";
 import asyncForEach from "../utils/async-foreach";
 import IApiResultObject from "../types/api-result";
-import { STATUS_NOPRIVATESETTINGS, STATUS_NOAUTHN_APIKEY, STATUS_NOAUTHN_APISECRETKEY } from "./constants";
+import { STATUS_NOPRIVATESETTINGS, STATUS_NOAUTHN_APIKEY, STATUS_NOAUTHN_APISECRETKEY, MJ_EVENT_MAPPING, ERROR_INCOMING_EVENT_UNKNOWN } from "./constants";
 
 class SyncAgent {
 
@@ -97,9 +97,6 @@ class SyncAgent {
                 env.serviceContactCreate = this._mappingUtil.mapHullUserToMailjetContactCreate((env.msg as IHullUserUpdateMessage).user);
                 env.serviceContactData = this._mappingUtil.mapHullUserToMailjetContactData((env.msg as IHullUserUpdateMessage).user);
                 env.serviceContactListActions = this._mappingUtil.mapHullSegmentsToContactListActions((env.msg as IHullUserUpdateMessage).segments, recipients);
-                
-                // tslint:disable-next-line:no-console
-                console.log(env);
 
                 // [STEP 3] Execute API calls
                 let performedApiCall: boolean = false;
@@ -248,6 +245,55 @@ class SyncAgent {
 
 
         return statusResponse;
+    }
+
+    public async handleEventCallbacks(eventCallbacks: IMailjetEvent | IMailjetEvent[]): Promise<boolean> {
+        const mjEvents: IMailjetEvent[] = [];
+        let isSuccess = true;
+        try {
+            if (_.isArray(eventCallbacks)) {
+                mjEvents.push(...eventCallbacks);
+            } else {
+                mjEvents.push(eventCallbacks);
+            }
+            
+            await asyncForEach(mjEvents, async (mjEvent: IMailjetEvent) => {
+                const userIdent = this._mappingUtil.mapMailjetEventToHullUserIdent(mjEvent);
+                if(_.includes(_.keys(MJ_EVENT_MAPPING), mjEvent.event) === false) {
+                    this._hullClient.asUser(userIdent).logger.error("incoming.event.error", { 
+                        reason: ERROR_INCOMING_EVENT_UNKNOWN,
+                        event: mjEvent
+                    });
+                } else {
+                    
+                    const hullEvent = this._mappingUtil.mapMailjetEventToHullEvent(mjEvent);
+                    // NOTE: Test events do have the mj_contact_id set to zero
+                    if (mjEvent.mj_contact_id === 0) {
+                        // Log it so the user can verify it
+                        this._hullClient.logger.log("incoming.event.test", { ident: userIdent, event: hullEvent });
+                    } else {
+                        try {
+                            await this._hullClient.asUser(userIdent).track(
+                                hullEvent.event, 
+                                hullEvent.properties, 
+                                _.merge({}, hullEvent.context, {
+                                    created_at: hullEvent.created_at,
+                                    source: "mailjet"
+                                }));
+                            this._hullClient.asUser(userIdent).logger.debug("incoming.event.success", { event: hullEvent });   
+                        } catch (error) {
+                            this._hullClient.asUser(userIdent).logger.error("incoming.event.error", { event: hullEvent });
+                        }
+                    }
+                }
+            });
+            
+        } catch (error) {
+            isSuccess = false;
+            this._hullClient.logger.error("incoming.event.error", { error: JSON.stringify(error)});
+        }
+        
+        return Promise.resolve(isSuccess);
     }
 
     private handleOutgoingApiResult<T, U>(envelope: IOperationEnvelope, apiResult: IApiResultObject<T, U>) {

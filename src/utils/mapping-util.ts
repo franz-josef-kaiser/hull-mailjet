@@ -1,11 +1,14 @@
 import _ from "lodash";
 import slugify from "slugify";
+import moment from "moment";
 
 import IPrivateSettings, { ISegmentToContactListMappingEntry, IMappingEntry } from "../types/private-settings";
 import IHullUser, { IHullUserAttributes, IHullUserClaims } from "../types/user";
-import { IMailjetContactCreate, IMailjetContactDataUpdate, IMailjetContactDataEntry, IMailjetListRecipient, IMailjetContactListCrud, IMailjetContact } from "../core/mailjet-objects";
-import { MJ_ATTRIBUTE_DEFAULT_NAME, MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS, MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL, MJ_ATTRIBUTE_DEFAULT_NAME_VAL } from "../core/constants";
+import { IMailjetContactCreate, IMailjetContactDataUpdate, IMailjetContactDataEntry, IMailjetListRecipient, IMailjetContactListCrud, IMailjetContact, IMailjetEvent } from "../core/mailjet-objects";
+import { MJ_ATTRIBUTE_DEFAULT_NAME, MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS, MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL, MJ_ATTRIBUTE_DEFAULT_NAME_VAL, MJ_EVENT_MAPPING } from "../core/constants";
 import IHullSegment from "../types/hull-segment";
+import IHullUserEvent, { IHullUserEventContext } from "../types/user-event";
+
 
 class MappingUtil {
     private _attributeMappings: IMappingEntry[];
@@ -175,6 +178,24 @@ class MappingUtil {
     }
 
     /**
+     * Creates claims for a Hull user based on the info
+     * contained in the Mailjet event.
+     *
+     * @param {IMailjetEvent} mjEvent The Mailjet event.
+     * @returns {IHullUserClaims} The Hull user claims.
+     * @memberof MappingUtil
+     */
+    public mapMailjetEventToHullUserIdent(mjEvent: IMailjetEvent): IHullUserClaims {
+        const subAcctSlug = this.getSubAccountSlug();
+        const hullIdentPrefixMailjet = subAcctSlug === undefined ? 'mailjet': `mailjet_${subAcctSlug}`;
+        const claims: IHullUserClaims = {
+            email: mjEvent.email,
+            anonymous_id: `${hullIdentPrefixMailjet}:${mjEvent.mj_contact_id}`
+        };
+        return claims;
+    }
+
+    /**
      * Maps Mailjet objects related to a contact to Hull user attributes
      *
      * @param {IMailjetContact} contact The Mailjet contact.
@@ -209,6 +230,37 @@ class MappingUtil {
         }
 
         return hullAttribs;
+    }
+
+    /**
+     * Maps a Mailjet event to a Hull event
+     *
+     * @param {IMailjetEvent} mjEvent The Mailjet event.
+     * @returns {IHullUserEvent} The Hull event.
+     * @memberof MappingUtil
+     */
+    public mapMailjetEventToHullEvent(mjEvent: IMailjetEvent): IHullUserEvent {
+        const props = {};
+        const context: IHullUserEventContext = {
+            ip: _.isNil(mjEvent.ip) ? 0 : mjEvent.ip
+        };
+
+        if (_.isNil(mjEvent.agent) === false) {
+            _.set(context, "useragent", mjEvent.agent);
+        }
+
+        _.forIn(mjEvent, (v, k) => {
+            _.set(props, _.toLower(_.snakeCase(k)), v);
+        });
+
+        const hullEvent: IHullUserEvent = {
+            created_at: moment.unix(mjEvent.time).toISOString(),
+            context,
+            properties: props,
+            event: _.get(MJ_EVENT_MAPPING, mjEvent.event)
+        };
+
+        return hullEvent;
     }
 
     /**
