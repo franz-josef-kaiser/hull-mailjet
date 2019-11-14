@@ -9,8 +9,8 @@
             "contact_synchronized_segments": [],
             "contact_attributes_outbound": [
                 {
-                    "hull_field_name": "name",
-                    "service_field_name": "Name__d"
+                    "hull": "name",
+                    "service": "Name__d"
                 }
             ],
             "api_key": "foo123",
@@ -23,13 +23,22 @@
         "settings": {},
         "type": "ship",
         "manifest": {
-            "description": "Synchronize Hull contacts with Mailjet.",
+            "name": "Mailjet [BETA]",
             "tags": [
                 "outgoing",
                 "oneColumn",
                 "batch",
                 "smart-notifier"
             ],
+            "description": "Synchronize Hull contacts with Mailjet.",
+            "readme": "readme.md",
+            "tabs": [],
+            "version": "0.1.0",
+            "source": "mailjet",
+            "logo": "logo.png",
+            "icons": [],
+            "ui": false,
+            "settings": [],
             "private_settings": [
                 {
                     "name": "api_key",
@@ -39,7 +48,7 @@
                 },
                 {
                     "name": "api_secret_key",
-                    "title": "API Prefix",
+                    "title": "API Secret Key",
                     "type": "string",
                     "required": true
                 },
@@ -58,76 +67,118 @@
                     "format": "table",
                     "default": [],
                     "items": {
-                        "type": "object",
-                        "properties": {
-                            "hull_segment_id": {
-                                "type": "string",
-                                "format": "segment",
-                                "title": "Hull Segment"
-                            },
-                            "service_list_id": {
-                                "type": "number",
-                                "format": "select",
-                                "title": "Contact List",
-                                "options": {
-                                    "loadOptions": "/metadata/contactlists"
-                                }
-                            }
+                      "type": "object",
+                      "properties": {
+                        "hull_segment_id": {
+                          "type": "string",
+                          "format": "segment",
+                          "title": "Hull Segment"
                         },
-                        "required": [
-                            "hull_segment_id",
-                            "service_list_id"
-                        ]
+                        "service_list_id": {
+                          "type": "number",
+                          "format": "select",
+                          "title": "Contact List",
+                          "options" : {
+                            "loadOptions": "/metadata/contactlists"
+                          }
+                        }
+                      },
+                      "required" : [
+                        "hull_segment_id",
+                        "service_list_id"
+                      ]
                     }
                 },
                 {
-                    "name": "contact_attributes_outbound",
-                    "title": "User attributes mapping",
-                    "description": "The connector automatically maps and uses the Hull attribute `email` as value for the property Email. This is required for identity resolution and cannot be changed. The default Mailjet property `Name` is indicated by the `(*)` prefix in case you have a custom attribute with the same label.",
-                    "type": "array",
-                    "format": "table",
-                    "default": [
-                        {
-                            "hull_field_name": "name",
-                            "service_field_name": "Name__d"
-                        }
-                    ],
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "hull_field_name": {
-                                "type": "string",
-                                "format": "trait",
-                                "title": "Hull Attribute"
-                            },
-                            "service_field_name": {
-                                "type": "string",
-                                "title": "Contact Property",
-                                "format": "select",
-                                "options": {
-                                    "loadOptions": "/metadata/contactproperties"
-                                }
-                            }
-                        },
-                        "required": [
-                            "hull_field_name",
-                            "service_field_name"
-                        ]
+                  "name" : "contact_attributes_outbound",
+                  "title" : "User attributes mapping",
+                  "description": "The connector automatically maps and uses the Hull attribute `email` as value for the property Email. This is required for identity resolution and cannot be changed. The default Mailjet property `Name` is indicated by the `(*)` prefix in case you have a custom attribute with the same label.",
+                  "type" : "array",
+                  "format": "traitMapping",
+                  "options": {
+                    "direction": "outgoing",
+                    "showOverwriteToggle": false,
+                    "placeholder": "Hubspot Field",
+                    "allowCreate": true,
+                    "loadOptions": "/metadata/contactproperties"
+                  }
+                },
+                {
+                  "name": "incoming_eventcallbackurl_eventtypes",
+                  "title": "Track Actions",
+                  "description": "The connector will automatically manage callback URLs used as webhooks to track different email actions. Whenever an action (e.g. email open) occurs, the information about it will be stored as a user event in Hull.",
+                  "type": "array",
+                  "format": "select",
+                  "uniqueItems": true,
+                  "default": [],
+                  "items": {
+                    "type": "string",
+                    "format": "select",
+                    "options" : {
+                      "loadOptions": "/metadata/eventtypes"
                     }
+                  } 
                 }
             ],
-            "tabs": [],
-            "name": "Mailjet [BETA]",
-            "settings": [],
+            "json": [
+              {
+                "title": "Remove all Webhooks",
+                "name": "btn_eventcallbackurl_clear",
+                "format": "button",
+                "url": "/eventcallbacksclear",
+                "options": {
+                  "confirm": {
+                    "fireAndForget": false,
+                    "text": "You are about to remove all event callback URLs, actions from Mailjet won't be captured as events in Hull going forward. Please refresh this page after a few seconds to reflect the changes.",
+                    "button": "Remove all"
+                  }
+                }
+              }
+            ],
+            "schedules": [
+              {
+                "url": "/status",
+                "type": "interval",
+                "value": "30"
+              },
+              {
+                "url": "/schedulewebhooks",
+                "type": "interval",
+                "value": "10"
+              }
+            ],
             "subscriptions": [
                 {
                     "url": "/smart-notifier"
                 }
             ],
-            "ui": false,
-            "readme": "readme.md",
-            "schedules": [],
-            "version": "0.1.0"
+            "settings_sections": [
+                {
+                    "title": "Authentication",
+                    "description": "Configure basic parameters to connect to your Mailjet service",
+                    "properties": [
+                        "private_settings.api_key",
+                        "private_settings.api_secret_key",
+                        "private_settings.subaccount_slug"
+                    ]
+                },
+                {
+                    "title": "Contact Synchronization Setup",
+                    "description": "How we synchronize Hull Users with Mailjet Contacts",
+                    "properties": [
+                      "private_settings.contact_synchronized_segments",
+                      "private_settings.contact_attributes_outbound"
+                    ]
+                },
+                {
+                  "title": "Track Mailjet Actions (Webhooks)",
+                  "description": "Configure which actions in Mailjet are captured as events in Hull. Note that changing this setting will only impact future data and not have any impact on historic events. **Important** *Before you delete* this connector go to Mailjet and remove the webhooks pointing to `https://<CONNECTOR ID>:<CONNECTOR SECRET>@hull-mailjet.herokuapp.com?org=<ORGANIZATION NAMESPACE>` or use the 'Remove all Webhooks' button below.",
+                  "properties": [
+                    "private_settings.incoming_eventcallbackurl_eventtypes",
+                    "json.btn_eventcallbackurl_clear"
+                  ]
+                }
+            ]
         },
         "secret": "somesecretsauce1234",
         "updated_at": "2019-11-06T21:10:42Z",

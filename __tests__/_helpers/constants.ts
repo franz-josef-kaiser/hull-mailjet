@@ -1,3 +1,5 @@
+import { MailJetEventType } from "../../src/core/mailjet-objects";
+
 export const API_KEY = "api1234";
 export const API_SECRET_KEY = "secret56789";
 export const API_BASE_URL = 'https://api.mailjet.com';
@@ -6,13 +8,18 @@ export const AUTH_HEADER_CHECK = "Basic YXBpMTIzNDpzZWNyZXQ1Njc4OQ==";
 
 export const CONCONF_SUBACCOUNT_SLUG = "Dev";
 export const CONCONF_OUTBOUND_ATTRIBS = [{
-        hull_field_name: 'custom/foo',
-        service_field_name: 'title'
+        hull: 'custom/foo',
+        service: 'title'
     },
     {
-        hull_field_name: 'traits_unified_data/job_title',
-        service_field_name: 'job_title'
+        hull: 'traits_unified_data/job_title',
+        service: 'job_title'
     }
+];
+export const CONCONF_EVENTTYPES: MailJetEventType[] = [
+    "open",
+    "click",
+    "bounce"
 ];
 
 export const HULL_USER_NAME0 = "John Doe";
@@ -84,3 +91,20 @@ export const MJ_EVENT_ID = 19421777835146490;
 export const MJ_EVENT_GUID = "1ab23cd4-e567-8901-2345-6789f0gh1i2j";
 export const MJ_EVENT_TIME = 1433333949;
 export const MJ_EVENT_CAMPAIGNID = 7257;
+
+export const MJ_EVENTCALLBACK_IDS = {
+    "open": 1, 
+    "click": 2,
+    "bounce": 3,
+    "spam": 4,
+    "blocked": 5,
+    "unsub": 6,
+    "sent": 7
+};
+
+export const MJ_APIKEY = 37256698;
+
+export const CONNECTOR_HOST = "hull-mailjet.herokuapp.com";
+export const CONNECTOR_ID = "5dc2cbb1d67dced039012d37";
+export const CONNECTOR_ORG = "fakeorg.hullapp.io";
+export const CONNECTOR_SECRET = "somesecretsauce1234";

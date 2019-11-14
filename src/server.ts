@@ -18,7 +18,8 @@ const server = (app: Application): Application => {
                     in: parseInt(_.get(process.env.FLOW_CONTROL_IN, "5"), 10),
                     in_time: parseInt(_.get(process.env.FLOW_CONTROL_IN_TIME, "60000"), 10)
                   }
-            })
+            }),
+            "ship:update": actions.connectorUpdate
         }
     }));
 
@@ -37,6 +38,13 @@ const server = (app: Application): Application => {
     // Status endpoint
     app.use("/status", actions.status);
 
+    // Schedule endpoints
+    app.use("/schedulewebhooks", actions.scheduleWebhooks);
+
+    // Button endpoints
+    app.use("/eventcallbacksclear", cors(), actions.eventcallbacksClear);
+
+    // The event callback URL handler (aka webhook)
     app.use(express.json());
     app.use("/eventcallback", cors(), authMiddleware , actions.eventCallback);
 

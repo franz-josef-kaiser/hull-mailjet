@@ -21,3 +21,6 @@ export const STATUS_NOAUTHN_APIKEY = "Missing credentials: The field 'API Key' i
 export const STATUS_NOAUTHN_APISECRETKEY = "Missing credentials: The field 'API Secret Key' in Settings is empty.";
 
 export const ERROR_INCOMING_EVENT_UNKNOWN = "Unknown event. The event received is not supported by the connector.";
+export const ERROR_WEBHOOK_FAILEDTORETRIEVELIST = "Failed to retrieve the list of all callback URL objects and their configuration settings.";
+export const ERROR_WEBHOOK_FAILEDTODELETE = "Failed to delete a callback URL object. See apiResult for details.";
+export const ERROR_WEBHOOK_FAILEDTOCREATE = "Failed to create a new callback URL object. See apiResult for details.";

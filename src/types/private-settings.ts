@@ -1,6 +1,8 @@
+import { MailJetEventType } from "../core/mailjet-objects";
+
 export interface IMappingEntry {
-    hull_field_name: string | undefined;
-    service_field_name: string | undefined;
+    hull: string | undefined;
+    service: string | undefined;
 }
 
 export interface ISegmentToContactListMappingEntry {
@@ -14,4 +16,5 @@ export default interface IPrivateSettings {
     subaccount_slug?: string;
     contact_synchronized_segments: ISegmentToContactListMappingEntry[];
     contact_attributes_outbound: IMappingEntry[];
+    incoming_eventcallbackurl_eventtypes?: MailJetEventType[];
 }

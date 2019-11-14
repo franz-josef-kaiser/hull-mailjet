@@ -31,21 +31,21 @@ class MappingUtil {
      */
     public mapHullUserToMailjetContactCreate(user: IHullUser): IMailjetContactCreate {
         let hullAttrName = "name";
-        const mappedNameAttribute = _.find(this._attributeMappings, { service_field_name: MJ_ATTRIBUTE_DEFAULT_NAME_VAL });
+        const mappedNameAttribute = _.find(this._attributeMappings, { service: MJ_ATTRIBUTE_DEFAULT_NAME_VAL });
         if (mappedNameAttribute !== undefined &&
-            _.isString(mappedNameAttribute.hull_field_name) &&
-            _.trim(mappedNameAttribute.hull_field_name).length !== 0) {
-            hullAttrName = mappedNameAttribute.hull_field_name;
+            _.isString(mappedNameAttribute.hull) &&
+            _.trim(mappedNameAttribute.hull).length !== 0) {
+            hullAttrName = mappedNameAttribute.hull;
         }
 
         const subAcctSlug = this.getSubAccountSlug();
         const hullAttrGroupMailjet = subAcctSlug === undefined ? 'mailjet': `mailjet_${subAcctSlug}`;
         let hullAttrIsExcludedFromCampaigns = `${hullAttrGroupMailjet}.${_.snakeCase("IsExcludedFromCampaigns")}`;
-        const mappedExclusionAttribute = _.find(this._attributeMappings, { service_field_name: MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL });
+        const mappedExclusionAttribute = _.find(this._attributeMappings, { service: MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL });
         if (mappedExclusionAttribute !== undefined &&
-            _.isString(mappedExclusionAttribute.hull_field_name) &&
-            _.trim(mappedExclusionAttribute.hull_field_name).length !== 0) {
-            hullAttrIsExcludedFromCampaigns = mappedExclusionAttribute.hull_field_name;
+            _.isString(mappedExclusionAttribute.hull) &&
+            _.trim(mappedExclusionAttribute.hull).length !== 0) {
+            hullAttrIsExcludedFromCampaigns = mappedExclusionAttribute.hull;
         }
 
         const mjObject: IMailjetContactCreate = {
@@ -67,8 +67,8 @@ class MappingUtil {
      */
     public mapHullUserToMailjetContactData(user: IHullUser): IMailjetContactDataUpdate {
         const customAttributeMappings = _.filter(this._attributeMappings, (m) => {
-            return m.service_field_name !== MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL &&
-                   m.service_field_name !== MJ_ATTRIBUTE_DEFAULT_NAME_VAL;
+            return m.service !== MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL &&
+                   m.service !== MJ_ATTRIBUTE_DEFAULT_NAME_VAL;
         });
         
         const mjObject: IMailjetContactDataUpdate = {
@@ -76,17 +76,17 @@ class MappingUtil {
         };
 
         _.forEach(customAttributeMappings, (m) => {
-            if (m.hull_field_name !== undefined &&
-                _.isString(m.hull_field_name) &&
-                m.service_field_name !== undefined &&
-                _.isString(m.service_field_name) &&
-                _.get(user, m.hull_field_name, undefined) !== undefined) {
+            if (m.hull !== undefined &&
+                _.isString(m.hull) &&
+                m.service !== undefined &&
+                _.isString(m.service) &&
+                _.get(user, m.hull, undefined) !== undefined) {
                 // Process only valid entries
                 // NOTE: Mailjet cannot handle null as Value, so do not create
                 //       any entries for undefined Hull attributes.
                 const entry: IMailjetContactDataEntry = {
-                    Name: m.service_field_name,
-                    Value: _.get(user, m.hull_field_name) as any
+                    Name: m.service,
+                    Value: _.get(user, m.hull) as any
                 }
                 mjObject.Data.push(entry);
             }

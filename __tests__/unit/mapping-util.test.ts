@@ -213,8 +213,8 @@ describe("MappingUtil", () => {
             api_key: payload.connector.private_settings.api_key,
             api_secret_key: payload.connector.private_settings.api_secret_key,
             contact_attributes_outbound: [{
-                hull_field_name: "control_data.no_email",
-                service_field_name: MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL
+                hull: "control_data.no_email",
+                service: MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL
             }],
             contact_synchronized_segments: payload.connector.private_settings.contact_synchronized_segments
         };
@@ -238,8 +238,8 @@ describe("MappingUtil", () => {
             api_key: payload.connector.private_settings.api_key,
             api_secret_key: payload.connector.private_settings.api_secret_key,
             contact_attributes_outbound: [{
-                hull_field_name: "unified_data.name",
-                service_field_name: MJ_ATTRIBUTE_DEFAULT_NAME_VAL
+                hull: "unified_data.name",
+                service: MJ_ATTRIBUTE_DEFAULT_NAME_VAL
             }],
             contact_synchronized_segments: payload.connector.private_settings.contact_synchronized_segments
         };
@@ -283,20 +283,20 @@ describe("MappingUtil", () => {
             api_secret_key: payload.connector.private_settings.api_secret_key,
             contact_attributes_outbound: [
                 {
-                    hull_field_name: undefined,
-                    service_field_name: "salutation_suffix"
+                    hull: undefined,
+                    service: "salutation_suffix"
                 },
                 {
-                    hull_field_name: "name",
-                    service_field_name: undefined
+                    hull: "name",
+                    service: undefined
                 },
                 {
-                    hull_field_name: "non_existing.country",
-                    service_field_name: "country"
+                    hull: "non_existing.country",
+                    service: "country"
                 },
                 {
-                    hull_field_name: "first_name",
-                    service_field_name: "first_name"
+                    hull: "first_name",
+                    service: "first_name"
                 }
             ],
             contact_synchronized_segments: payload.connector.private_settings.contact_synchronized_segments

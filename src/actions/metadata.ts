@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import IFieldsSchema from "../types/fields-schema";
 import IHullClient from "../types/hull-client";
 import SyncAgent from "../core/sync-agent";
-import { MJ_ATTRIBUTE_DEFAULT_NAME, MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS, MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL } from "../core/constants";
+import { MJ_ATTRIBUTE_DEFAULT_NAME, MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS, MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL, MJ_EVENT_MAPPING, MJ_ATTRIBUTE_DEFAULT_NAME_VAL } from "../core/constants";
 
 const metadataAction = async (req: Request, res: Response) => {
     // Destructure the hull object from request
@@ -28,7 +28,7 @@ const metadataAction = async (req: Request, res: Response) => {
                 });
             });
             // Always add the default props
-            payload.options.push({ value: "Name", label: MJ_ATTRIBUTE_DEFAULT_NAME });
+            payload.options.push({ value: MJ_ATTRIBUTE_DEFAULT_NAME_VAL, label: MJ_ATTRIBUTE_DEFAULT_NAME });
             payload.options.push({ value: MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS_VAL, label: MJ_ATTRIBUTE_DEFAULT_ISEXCLUDEDFROMCAMPAIGNS });
             payload.ok = true;
             break;
@@ -38,6 +38,11 @@ const metadataAction = async (req: Request, res: Response) => {
                 return mjLists.map((p) => {
                     return { value: p.ID, label: p.Name };
                 });
+            });
+            break;
+        case "eventtypes":
+            _.forIn(MJ_EVENT_MAPPING, (v, k) => {
+                payload.options.push({ value: k, label: v });
             });
             break;
         default:

@@ -136,7 +136,7 @@ describe("SyncAgent", () => {
             await syncAgent.sendUserMessages(smartNotifierPayload.messages);
             const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
             ctxExpectationsFn(ctxMock, apiResponses);
-            expect(nock.isDone()).toBe(true);                
+            expect(nock.isDone()).toBe(true);
         });
     });
 
@@ -261,5 +261,74 @@ describe("SyncAgent", () => {
         ctxExpectationsFn(ctxMock, apiResponses);
         expect(nock.isDone()).toBe(true);                
     });
+
+    test(`should handle scenario 'eventcallbacks_create'`, async() => {
+        const scenarioName = 'eventcallbacks_create';        
+
+        const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/sn-payload`).default;
+        const smartNotifierPayload = payloadSetupFn();
+
+        ctxMock.connector = smartNotifierPayload.connector;
+        ctxMock.ship = smartNotifierPayload.connector;
+
+        ctxMock.client.get = jest.fn(() => Promise.resolve(smartNotifierPayload.connector));
+
+        const syncAgent = new SyncAgent(ctxMock.client, ctxMock.connector, ctxMock.metric);
+
+        const apiResponseSetupFn: (nock: any) => IApiResponseNocked[] = require(`../_scenarios/${scenarioName}/api-responses`).default;
+        const apiResponses = apiResponseSetupFn(nock);
+
+        await syncAgent.ensureEventCallbackUrls(true);
+        const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
+        ctxExpectationsFn(ctxMock, apiResponses);
+        expect(nock.isDone()).toBe(true);                
+    });
     
+    test(`should handle scenario 'eventcallbacks_delete'`, async() => {
+        const scenarioName = 'eventcallbacks_delete';        
+
+        const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/sn-payload`).default;
+        const smartNotifierPayload = payloadSetupFn();
+
+        ctxMock.connector = smartNotifierPayload.connector;
+        ctxMock.ship = smartNotifierPayload.connector;
+
+        ctxMock.client.get = jest.fn(() => Promise.resolve(smartNotifierPayload.connector));
+
+        const syncAgent = new SyncAgent(ctxMock.client, ctxMock.connector, ctxMock.metric);
+
+        const apiResponseSetupFn: (nock: any) => IApiResponseNocked[] = require(`../_scenarios/${scenarioName}/api-responses`).default;
+        const apiResponses = apiResponseSetupFn(nock);
+
+        await syncAgent.ensureEventCallbackUrls(true);
+        const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
+        ctxExpectationsFn(ctxMock, apiResponses);
+        expect(nock.isDone()).toBe(true);                
+    });
+
+    test(`should handle scenario 'eventcallbacks_clearall'`, async() => {
+        const scenarioName = 'eventcallbacks_clearall';        
+
+        const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/sn-payload`).default;
+        const smartNotifierPayload = payloadSetupFn();
+
+        ctxMock.connector = smartNotifierPayload.connector;
+        ctxMock.ship = smartNotifierPayload.connector;
+
+        ctxMock.client.get = jest.fn(() => Promise.resolve(smartNotifierPayload.connector));
+        ctxMock.client.utils = {
+            settings: {
+                update: jest.fn(() => Promise.resolve(true))
+            }
+        };
+        const syncAgent = new SyncAgent(ctxMock.client, ctxMock.connector, ctxMock.metric);
+
+        const apiResponseSetupFn: (nock: any) => IApiResponseNocked[] = require(`../_scenarios/${scenarioName}/api-responses`).default;
+        const apiResponses = apiResponseSetupFn(nock);
+
+        await syncAgent.clearEventCallbackUrls();
+        const ctxExpectationsFn: (ctx: ContextMock, apiResponses: IApiResponseNocked[]) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
+        ctxExpectationsFn(ctxMock, apiResponses);
+        expect(nock.isDone()).toBe(true);                
+    });
 });
