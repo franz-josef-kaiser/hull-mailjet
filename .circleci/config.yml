@@ -52,4 +52,4 @@ jobs:
       - run: npm run test:ci
 
       # notify cc about completed tests
-      - run: - ./cc-test-reporter after-build -t lcov --debug
+      - run: ./cc-test-reporter after-build -t lcov --debug
