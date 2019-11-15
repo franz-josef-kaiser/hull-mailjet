@@ -3,6 +3,7 @@
 [![CircleCI](https://circleci.com/gh/SMK1085/hull-mailjet.svg?style=svg)](https://circleci.com/gh/SMK1085/hull-mailjet)
 [![codecov](https://codecov.io/gh/SMK1085/hull-mailjet/branch/master/graph/badge.svg)](https://codecov.io/gh/SMK1085/hull-mailjet)
 [![Maintainability](https://api.codeclimate.com/v1/badges/1c3033cf637b13ccff95/maintainability)](https://codeclimate.com/github/SMK1085/hull-mailjet/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/1c3033cf637b13ccff95/test_coverage)](https://codeclimate.com/github/SMK1085/hull-mailjet/test_coverage)
 [![Known Vulnerabilities](https://snyk.io/test/github/SMK1085/hull-mailjet/badge.svg)](https://snyk.io/test/github/SMK1085/hull-mailjet)
 [![Dependency Status](https://david-dm.org/SMK1085/hull-mailjet.svg)](https://david-dm.org/SMK1085/hull-mailjet)
 [![devDependencies Status](https://david-dm.org/SMK1085/hull-mailjet/dev-status.svg)](https://david-dm.org/SMK1085/hull-mailjet?type=dev)
