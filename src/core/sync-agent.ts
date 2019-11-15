@@ -373,50 +373,13 @@ class SyncAgent {
         const baUser = this._connector.id;
         const baPass = this._connector.secret;
 
-        this._logUtil.incrementApiCallsMetric();
-        const allEventCallbacksApiResult = await this._svcClient.listEventCallbacks();
-        if (allEventCallbacksApiResult.success === false) {
-            this._hullClient.logger.log("connector.webhook.error", {
-                reason: ERROR_WEBHOOK_FAILEDTORETRIEVELIST,
-                apiResult: allEventCallbacksApiResult
-            });
-            return Promise.resolve(false);
-        }
-
-        const eventCallbackUrl = `${connectorUrl.protocol}//${baUser}:${baPass}@${connectorUrl.host}/eventcallback?org=${homepageUrl.host}`;
-
-        const registeredCallbacks: IMailjetEventCallbackUrl[] = 
-            _.filter((allEventCallbacksApiResult.data as IMailjetPagedResult<IMailjetEventCallbackUrl>).Data, (ec) => {
-                return ec.Url === eventCallbackUrl;
-            });
-        const registeredCallbacksDifferentHost: IMailjetEventCallbackUrl[] = 
-            _.filter((allEventCallbacksApiResult.data as IMailjetPagedResult<IMailjetEventCallbackUrl>).Data, (ec) => {
-                return ec.Url !== eventCallbackUrl &&
-                       ec.Url.indexOf(`//${baUser}:${baPass}@`) !== -1 &&
-                       ec.Url.indexOf(homepageUrl.host) !== -1;
-            });
-        
-        await asyncForEach(_.concat(registeredCallbacks, registeredCallbacksDifferentHost), async(ecToDel: IMailjetEventCallbackUrl) => {
-            this._logUtil.incrementApiCallsMetric();
-            const delResult = await this._svcClient.deleteEventCallback(ecToDel.ID);
-            if(delResult.success === false) {
-                this._hullClient.logger.error(
-                    "connector.webhook.error",
-                    {
-                        reason: ERROR_WEBHOOK_FAILEDTODELETE,
-                        apiResult: delResult
-                    }
-                );
-            } else {
-                this._hullClient.logger.debug(
-                    "connector.webhook.success",
-                    {
-                        apiResult: delResult
-                    }
-                );
-            }
+        await this._webhookUtil.unregisterAllWebhooks({
+            baPass,
+            baUser,
+            connectorUrl,
+            desiredEventTypes: [],
+            homepageUrl
         });
-
         return true;
     }
 }

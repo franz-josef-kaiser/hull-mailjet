@@ -52,6 +52,30 @@ class WebhookUtil {
         }
     }
 
+    public async unregisterAllWebhooks(config: IEventCallbackUrlConfig) {
+        try {
+            this._logUtil.incrementApiCallsMetric();
+            const allEventCallbacksApiResult = await this._svcClient.listEventCallbacks();
+
+            if (allEventCallbacksApiResult.success === false) {
+                throw new ApiCommunicationError(allEventCallbacksApiResult, ERROR_WEBHOOK_FAILEDTORETRIEVELIST);
+            }
+
+            const eventCallbackUrl = `${config.connectorUrl.protocol}//${config.baUser}:${config.baPass}@${config.connectorUrl.host}/eventcallback?org=${config.homepageUrl.host}`;
+            const registeredCallbacks: IMailjetEventCallbackUrl[] = 
+                _.filter((allEventCallbacksApiResult.data as IMailjetPagedResult<IMailjetEventCallbackUrl>).Data, { Url : eventCallbackUrl });
+            const registeredCallbacksDifferentHost: IMailjetEventCallbackUrl[] = 
+                this.filterCallbacksWithDiffHost((allEventCallbacksApiResult.data as IMailjetPagedResult<IMailjetEventCallbackUrl>).Data, config, eventCallbackUrl);
+            
+            await asyncForEach(_.concat(registeredCallbacks, registeredCallbacksDifferentHost), async(ec: IMailjetEventCallbackUrl) => this.unregisterWebhook(ec));
+            
+        } catch (error) {
+            this._logUtil.logConnectorOperation("error", "connector.webhook.error", { 
+                error
+            });
+        }
+    }
+
     private filterCallbacksWithDiffHost(allCallbacks: IMailjetEventCallbackUrl[], config: IEventCallbackUrlConfig,eventCallbackUrl: string): IMailjetEventCallbackUrl[] {
         return _.filter(allCallbacks, (ec: IMailjetEventCallbackUrl) => {
             return ec.Url !== eventCallbackUrl &&
