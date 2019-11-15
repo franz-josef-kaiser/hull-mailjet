@@ -1,6 +1,6 @@
 module.exports = {
     apps : [{
-      name: 'Hull Planhat',
+      name: 'Hull Mailjet',
       script: 'build/index.js',
       instances: 1,
       autorestart: true,
