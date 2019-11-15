@@ -1,8 +1,8 @@
 import _ from "lodash";
-import { IMailjetEvent, MailJetEventType } from "../mailjet-objects";
+import { IMailjetEvent } from "../mailjet-objects";
 import MappingUtil from "../../utils/mapping-util";
 import { MJ_EVENT_MAPPING, ERROR_INCOMING_EVENT_UNKNOWN } from "../constants";
-import { UnknownMailjetEventError } from "../errors";
+import { UnknownMailjetEventError } from "../errors/index";
 import LoggingUtil from "../../utils/logging-util";
 import IHullUserEvent from "../../types/user-event";
 import { IHullUserClaims } from "../../types/user";

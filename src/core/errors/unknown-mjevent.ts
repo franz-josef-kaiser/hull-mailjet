@@ -1,4 +1,4 @@
-import { ERROR_INCOMING_EVENT_UNKNOWN } from "./constants";
+import { ERROR_INCOMING_EVENT_UNKNOWN } from "../constants";
 
 export class UnknownMailjetEventError extends Error {
     public receivedEvent: any;

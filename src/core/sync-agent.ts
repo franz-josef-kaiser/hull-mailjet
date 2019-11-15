@@ -14,6 +14,7 @@ import { STATUS_NOPRIVATESETTINGS, STATUS_NOAUTHN_APIKEY, STATUS_NOAUTHN_APISECR
 import { IHullConnector } from "../types/connector";
 import LoggingUtil from "../utils/logging-util";
 import MailjetEventUtil from "./sync-agent/mjevent-util";
+import WebhookUtil from "./sync-agent/webhook-util";
 
 class SyncAgent {
 
@@ -26,6 +27,7 @@ class SyncAgent {
     private _mappingUtil: MappingUtil;
     private _logUtil: LoggingUtil;
     private _mjEventUtil: MailjetEventUtil;
+    private _webhookUtil: WebhookUtil;
 
     /**
      * Creates an instance of SyncAgent.
@@ -56,6 +58,7 @@ class SyncAgent {
         this._mappingUtil = new MappingUtil(privateSettings);
         this._logUtil = new LoggingUtil(this._hullClient, this._metricsClient);
         this._mjEventUtil = new MailjetEventUtil(this._hullClient, this._mappingUtil, this._logUtil);
+        this._webhookUtil = new WebhookUtil(this._svcClient, this._logUtil);
     }
 
     /**
@@ -339,113 +342,15 @@ class SyncAgent {
             baPass = _.get(connRes, 'secret', baPass);
             desiredEventTypes = _.get(connRes, "private_settings.incoming_eventcallbackurl_eventtypes", []);
         }
-        
-        const eventCallbackUrl = `${connectorUrl.protocol}//${baUser}:${baPass}@${connectorUrl.host}/eventcallback?org=${homepageUrl.host}`;
 
-        const actionsForEventCallbacks: { creates: IMailjetEventCallbackUrlCreate[], deletes: IMailjetEventCallbackUrl[] } = {
-            creates: [],
-            deletes: []
-        };
-
-        this._logUtil.incrementApiCallsMetric();
-        const allEventCallbacksApiResult = await this._svcClient.listEventCallbacks();
-        if (allEventCallbacksApiResult.success === false) {
-            this._hullClient.logger.log("connector.webhook.error", {
-                reason: ERROR_WEBHOOK_FAILEDTORETRIEVELIST,
-                apiResult: allEventCallbacksApiResult
-            });
-            return Promise.resolve(false);
-        }
-
-        const registeredCallbacks: IMailjetEventCallbackUrl[] = 
-            _.filter((allEventCallbacksApiResult.data as IMailjetPagedResult<IMailjetEventCallbackUrl>).Data, (ec) => {
-                return ec.Url === eventCallbackUrl;
-            });
-        const registeredCallbacksDifferentHost: IMailjetEventCallbackUrl[] = 
-            _.filter((allEventCallbacksApiResult.data as IMailjetPagedResult<IMailjetEventCallbackUrl>).Data, (ec) => {
-                return ec.Url !== eventCallbackUrl &&
-                       ec.Url.indexOf(`//${baUser}:${baPass}@`) !== -1 &&
-                       ec.Url.indexOf(homepageUrl.host) !== -1;
-            });
-        
-        // Add all the incorrectly registered webhooks to the deletion list
-        _.forEach(registeredCallbacksDifferentHost, (ec) => {
-            actionsForEventCallbacks.deletes.push(ec);
-        });
-        
-        // Diff the desired vs the registered callbacks
-        _.forEach(desiredEventTypes, (et) => {
-            if (_.isNil(_.find(registeredCallbacks, { EventType: et }))) {
-                actionsForEventCallbacks.creates.push({
-                    EventType: et,
-                    IsBackup: false,
-                    Status: "alive",
-                    Url: eventCallbackUrl
-                });
-            }
+        await this._webhookUtil.ensureWebhooksRegistered({
+            baPass,
+            baUser,
+            connectorUrl,
+            desiredEventTypes,
+            homepageUrl
         });
 
-        // Diff the desired vs the registered callbacks
-        _.forEach(registeredCallbacks, (ec) => {
-            if(!_.includes(desiredEventTypes, ec.EventType)) {
-                actionsForEventCallbacks.deletes.push(ec);
-            }
-        });
-
-        let successfullyDeleted: boolean = true;
-        await asyncForEach(actionsForEventCallbacks.deletes, async(ecToDel: IMailjetEventCallbackUrl) => {
-            this._logUtil.incrementApiCallsMetric();
-            const delResult = await this._svcClient.deleteEventCallback(ecToDel.ID);
-            if(delResult.success === false) {
-                successfullyDeleted = false;
-                this._hullClient.logger.error(
-                    "connector.webhook.error",
-                    {
-                        reason: ERROR_WEBHOOK_FAILEDTODELETE,
-                        apiResult: delResult
-                    }
-                );
-            } else {
-                this._hullClient.logger.debug(
-                    "connector.webhook.success",
-                    {
-                        apiResult: delResult
-                    }
-                );
-            }
-        });
-
-        // NOTE: DO NOT create new webhooks if cleanup is not successful, otherwise we end up in a situation we
-        //       cannot control and might have duplicate webhooks firing.
-
-        // @ts-ignore Typescript doesn't consider asyncForEach so it will throw since it evaluates it always to `true`
-        if (successfullyDeleted === false) { 
-            return Promise.resolve(false) 
-        }
-
-        await asyncForEach(actionsForEventCallbacks.creates, async(ecToCreate: IMailjetEventCallbackUrlCreate) => {
-            this._logUtil.incrementApiCallsMetric();
-            const createResult = await this._svcClient.createEventCallback(ecToCreate);
-            if(createResult.success === false) {
-                successfullyDeleted = false;
-                this._hullClient.logger.error(
-                    "connector.webhook.error",
-                    {
-                        reason: ERROR_WEBHOOK_FAILEDTODELETE,
-                        apiResult: createResult
-                    }
-                );
-            } else {
-                this._hullClient.logger.debug(
-                    "connector.webhook.success",
-                    {
-                        apiResult: createResult
-                    }
-                );
-            }
-        });
-
-        
         return Promise.resolve(true);
     }
 

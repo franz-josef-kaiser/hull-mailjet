@@ -145,3 +145,11 @@ export interface IOperationEnvelope {
 }
 
 export type ConnectorLogLevel = "log" | "error" | "info" | "warn" | "verbose" | "debug"; 
+
+export interface IEventCallbackUrlConfig {
+    connectorUrl: URL;
+    homepageUrl: URL;
+    baUser: string;
+    baPass: string;
+    desiredEventTypes: MailJetEventType[];
+}
