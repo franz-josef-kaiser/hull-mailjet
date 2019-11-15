@@ -15,6 +15,7 @@ import { IHullConnector } from "../types/connector";
 import LoggingUtil from "../utils/logging-util";
 import MailjetEventUtil from "./sync-agent/mjevent-util";
 import WebhookUtil from "./sync-agent/webhook-util";
+import OutgoingUserHandler from "./sync-agent/outgoing-user-handler";
 
 class SyncAgent {
 
@@ -28,6 +29,7 @@ class SyncAgent {
     private _logUtil: LoggingUtil;
     private _mjEventUtil: MailjetEventUtil;
     private _webhookUtil: WebhookUtil;
+    private _outgoingUsrHandler: OutgoingUserHandler;
 
     /**
      * Creates an instance of SyncAgent.
@@ -59,6 +61,7 @@ class SyncAgent {
         this._logUtil = new LoggingUtil(this._hullClient, this._metricsClient);
         this._mjEventUtil = new MailjetEventUtil(this._hullClient, this._mappingUtil, this._logUtil);
         this._webhookUtil = new WebhookUtil(this._svcClient, this._logUtil);
+        this._outgoingUsrHandler = new OutgoingUserHandler(this._hullClient, this._svcClient, this._mappingUtil, this._logUtil);
     }
 
     /**
@@ -91,104 +94,7 @@ class SyncAgent {
             return Promise.resolve(true);
         }
 
-        await asyncForEach(envelopesToProcess, async (env: IOperationEnvelope) => {
-            try {
-                // [STEP 2] Transform Hull objects into Mailjet objects
-                const mjIdent = (env.msg as IHullUserUpdateMessage).user.email as string;
-                
-                this._logUtil.incrementApiCallsMetric();
-                const contactResult = await this._svcClient.getContact(mjIdent);
-                this._logUtil.logOutgoingApiResultForUser(env, contactResult);
-                const contact = contactResult.success && (contactResult.data as IMailjetPagedResult<IMailjetContact>).Count === 1 ?
-                    _.first((contactResult.data as IMailjetPagedResult<IMailjetContact>).Data) : undefined;
-
-                let recipients: IMailjetListRecipient[] = [];
-                if (contact !== undefined) {
-                    // If no contact has been found for the email address,
-                    // we save us an API call and do not query recipients at this point
-                    this._logUtil.incrementApiCallsMetric();
-                    const recipientsResult = await this._svcClient.getListRecipients(contact.ID);
-                    this._logUtil.logOutgoingApiResultForUser(env, recipientsResult);
-                    recipients = recipientsResult.success ? 
-                        (recipientsResult.data as IMailjetPagedResult<IMailjetListRecipient>).Data : [];
-                }
-                                
-                env.serviceContact = contact;
-                env.operation = contact === undefined ? "insert" : "update";
-                env.serviceContactCreate = this._mappingUtil.mapHullUserToMailjetContactCreate((env.msg as IHullUserUpdateMessage).user);
-                env.serviceContactData = this._mappingUtil.mapHullUserToMailjetContactData((env.msg as IHullUserUpdateMessage).user);
-                env.serviceContactListActions = this._mappingUtil.mapHullSegmentsToContactListActions((env.msg as IHullUserUpdateMessage).segments, recipients);
-
-                // [STEP 3] Execute API calls
-                let performedApiCall: boolean = false;
-                if (env.operation === "insert") {
-                    this._logUtil.incrementApiCallsMetric();
-                    performedApiCall = true;
-                    const contactApiResult = await this._svcClient.createContact(env.serviceContactCreate);
-                    this._logUtil.logOutgoingApiResultForUser(env, contactApiResult);
-                    env.serviceContact = contactApiResult.success && (contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Count === 1 ?
-                        _.first((contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Data) : undefined;
-                } else if(env.operation === "update" &&
-                          env.serviceContact &&
-                          env.serviceContactCreate &&
-                          (env.serviceContact.Name !== env.serviceContactCreate.Name ||
-                           env.serviceContact.IsExcludedFromCampaigns !== env.serviceContactCreate.IsExcludedFromCampaigns)) {
-                    this._logUtil.incrementApiCallsMetric();
-                    performedApiCall = true;
-                    const contactApiResult = await this._svcClient.updateContact(env.serviceContactCreate.Email, 
-                        _.pick(env.serviceContactCreate, ["IsExcludedFromCampaigns", "Name"]));
-                    this._logUtil.logOutgoingApiResultForUser(env, contactApiResult);
-                    env.serviceContact = contactApiResult.success && (contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Count === 1 ?
-                        _.first((contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Data) : undefined;
-                }
-
-                if (env.serviceContactData.Data.length !== 0 && env.serviceContact !== undefined) 
-                {
-                    this._logUtil.incrementApiCallsMetric();
-                    performedApiCall = true;
-                    const contactDataApiResult = await this._svcClient.updateContactData(env.serviceContact.ID, env.serviceContactData);
-                    this._logUtil.logOutgoingApiResultForUser(env, contactDataApiResult);
-                    env.serviceContactData = contactDataApiResult.success ? _.first((contactDataApiResult.data as IMailjetPagedResult<IMailjetContactData>).Data) : undefined;
-                }
-
-                if (env.serviceContactListActions.ContactsLists.length !== 0 && env.serviceContact !== undefined) 
-                {
-                    this._logUtil.incrementApiCallsMetric();
-                    performedApiCall = true;
-                    const contactListSubscriptionsApiResult = await this._svcClient.manageContactListSubscriptions(env.serviceContact.ID, env.serviceContactListActions);
-                    this._logUtil.logOutgoingApiResultForUser(env, contactListSubscriptionsApiResult);
-                    env.serviceContactListActions = contactListSubscriptionsApiResult.success ? { ContactsLists: (_.first((contactListSubscriptionsApiResult.data as IMailjetPagedResult<IMailjetContactListAction>).Data) as any) } : undefined;
-                }
-
-                if (performedApiCall && env.serviceContact !== undefined) {
-                    // Make sure we have the latest data for the contact; the full list is not returned by updateContactData
-                    this._logUtil.incrementApiCallsMetric();
-                    const contactDataApiResult = await this._svcClient.getContactData(env.serviceContact.ID);
-                    this._logUtil.logOutgoingApiResultForUser(env, contactDataApiResult);
-                    env.serviceContactData = contactDataApiResult.success ? _.first((contactDataApiResult.data as IMailjetPagedResult<IMailjetContactData>).Data) : undefined;
-                    // Get the latest list recipients for the contact
-                    this._logUtil.incrementApiCallsMetric();
-                    const listRecipientsApiResult = await this._svcClient.getListRecipients(env.serviceContact.ID);
-                    this._logUtil.logOutgoingApiResultForUser(env, listRecipientsApiResult);
-                    env.serviceContactRecipients = listRecipientsApiResult.success ? 
-                        (listRecipientsApiResult.data as IMailjetPagedResult<IMailjetListRecipient>).Data : undefined;
-                    
-                    // [STEP 4] Call the Hull client to update the user
-                    const userIdent = this._mappingUtil.mapMailjetContactToHullUserIdent(env.serviceContact, (env.msg as IHullUserUpdateMessage).user);
-                    const userAttribs = this._mappingUtil.mapMailjetObjectsToHullUserAttributes(env.serviceContact, env.serviceContactData, env.serviceContactRecipients);
-
-                    await this._hullClient.asUser(userIdent)
-                              .traits(userAttribs);
-                }
-
-            } catch (error) {
-                // At this point it is an unknown error, so something which 
-                // indicates a real error not just an API error
-                this._logUtil.logUnhandledOutgoingErrorForUser(env, "outgoing.user.error", error);
-            }
-
-            
-        });
+        await asyncForEach(envelopesToProcess, async (env: IOperationEnvelope) => this._outgoingUsrHandler.process(env));
     }
 
     /**
@@ -289,7 +195,6 @@ class SyncAgent {
 
         // Make the status available in the dashboard
         await this._hullClient.put(`${this._connector.id}/status`, statusResponse);
-
 
         return statusResponse;
     }
