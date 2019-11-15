@@ -1,5 +1,12 @@
 # Hull Mailjet Connector
 
+[![CircleCI](https://circleci.com/gh/SMK1085/hull-mailjet.svg?style=svg)](https://circleci.com/gh/SMK1085/hull-mailjet)
+[![codecov](https://codecov.io/gh/SMK1085/hull-mailjet/branch/master/graph/badge.svg)](https://codecov.io/gh/SMK1085/hull-mailjet)
+[![Maintainability](https://api.codeclimate.com/v1/badges/1c3033cf637b13ccff95/maintainability)](https://codeclimate.com/github/SMK1085/hull-mailjet/maintainability)
+[![Known Vulnerabilities](https://snyk.io/test/github/SMK1085/hull-mailjet/badge.svg)](https://snyk.io/test/github/SMK1085/hull-mailjet)
+[![Dependency Status](https://david-dm.org/SMK1085/hull-mailjet.svg)](https://david-dm.org/SMK1085/hull-mailjet)
+[![devDependencies Status](https://david-dm.org/SMK1085/hull-mailjet/dev-status.svg)](https://david-dm.org/SMK1085/hull-mailjet?type=dev)
+
 ## Overview
 
 A connector fo Hull which allows you to synchronize Hull users to Mailchimp, keep their subscriptions synchronized with the segments of Hull users and capture actions such as Email opened, Unsubscribed from Mailjet.
