@@ -24,3 +24,8 @@ export const ERROR_INCOMING_EVENT_UNKNOWN = "Unknown event. The event received i
 export const ERROR_WEBHOOK_FAILEDTORETRIEVELIST = "Failed to retrieve the list of all callback URL objects and their configuration settings.";
 export const ERROR_WEBHOOK_FAILEDTODELETE = "Failed to delete a callback URL object. See apiResult for details.";
 export const ERROR_WEBHOOK_FAILEDTOCREATE = "Failed to create a new callback URL object. See apiResult for details.";
+export const ERROR_API_GENERIC = "An error occured while communicating with the Mailjet API.";
+
+export const API_BASE_URL = `https://api.mailjet.com/v3/REST`;
+
+export const LOGGING_METRICS_APICALL = "ship.service_api.call";
