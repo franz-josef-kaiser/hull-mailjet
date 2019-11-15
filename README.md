@@ -10,7 +10,7 @@
 
 ## Overview
 
-A connector fo Hull which allows you to synchronize Hull users to Mailchimp, keep their subscriptions synchronized with the segments of Hull users and capture actions such as Email opened, Unsubscribed from Mailjet.
+A connector fo Hull which allows you to synchronize Hull users to Mailjet, keep their subscriptions synchronized with the segments of Hull users and capture actions such as Email opened, Unsubscribed from Mailjet.
 
 For more documentation, see the [Connector Docs](./assets/readme.md).
 
