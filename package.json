@@ -1,6 +1,6 @@
 {
   "name": "hull-mailjet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Hull Connector for Mailjet",
   "main": "index.ts",
   "scripts": {
