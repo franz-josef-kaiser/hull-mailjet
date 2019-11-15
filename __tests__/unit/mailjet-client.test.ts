@@ -1048,7 +1048,7 @@ describe("MailjetClient", () => {
 
         nock(`${BASE_URL}`)
             .matchHeader('Authorization', AUTH_HEADER)
-            .get(`/v3/REST/listrecipient/${recipientId}`)
+            .delete(`/v3/REST/listrecipient/${recipientId}`)
             .reply(204);
 
         const expected: IApiResultObject<IMailjetPagedResult<IMailjetContactListMembership>, any> = {
@@ -1078,7 +1078,7 @@ describe("MailjetClient", () => {
 
         nock(`${BASE_URL}`)
             .matchHeader('Authorization', AUTH_HEADER)
-            .get(`/v3/REST/listrecipient/${recipientId}`)
+            .delete(`/v3/REST/listrecipient/${recipientId}`)
             .reply(404, responseBody);
 
         const expected: IApiResultObject<IMailjetPagedResult<IMailjetContactListMembership>, any> = {

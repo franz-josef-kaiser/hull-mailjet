@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.2 - Code Refactoring
+
+- Break code into smaller chunks for better maintainablity
+- Fix some minor issues
+
 ## v0.1.1 - DX Improvements
 
 - Added Circle CI config
