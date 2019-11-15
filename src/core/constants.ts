@@ -26,3 +26,5 @@ export const ERROR_WEBHOOK_FAILEDTODELETE = "Failed to delete a callback URL obj
 export const ERROR_WEBHOOK_FAILEDTOCREATE = "Failed to create a new callback URL object. See apiResult for details.";
 
 export const API_BASE_URL = `https://api.mailjet.com/v3/REST`;
+
+export const LOGGING_METRICS_APICALL = "ship.service_api.call";

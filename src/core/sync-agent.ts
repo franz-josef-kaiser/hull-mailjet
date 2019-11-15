@@ -12,6 +12,8 @@ import asyncForEach from "../utils/async-foreach";
 import IApiResultObject from "../types/api-result";
 import { STATUS_NOPRIVATESETTINGS, STATUS_NOAUTHN_APIKEY, STATUS_NOAUTHN_APISECRETKEY, MJ_EVENT_MAPPING, ERROR_INCOMING_EVENT_UNKNOWN, ERROR_WEBHOOK_FAILEDTORETRIEVELIST, ERROR_WEBHOOK_FAILEDTODELETE } from "./constants";
 import { IHullConnector } from "../types/connector";
+import LoggingUtil from "../utils/logging-util";
+import MailjetEventUtil from "./sync-agent/mjevent-util";
 
 class SyncAgent {
 
@@ -22,6 +24,8 @@ class SyncAgent {
     private _svcClient: MailjetClient;
     private _filterUtil: FilterUtil;
     private _mappingUtil: MappingUtil;
+    private _logUtil: LoggingUtil;
+    private _mjEventUtil: MailjetEventUtil;
 
     /**
      * Creates an instance of SyncAgent.
@@ -50,6 +54,8 @@ class SyncAgent {
         // Configure the utilities
         this._filterUtil = new FilterUtil(privateSettings);
         this._mappingUtil = new MappingUtil(privateSettings);
+        this._logUtil = new LoggingUtil(this._hullClient, this._metricsClient);
+        this._mjEventUtil = new MailjetEventUtil(this._hullClient, this._mappingUtil, this._logUtil);
     }
 
     /**
@@ -75,10 +81,7 @@ class SyncAgent {
         });
 
         _.forEach(envelopesToSkip, (envelope) => {
-            const userIdent = _.pick(_.get(envelope, "msg.user"), ["id", "external_id", "email"]);
-            this._hullClient.asUser(userIdent)
-                .logger
-                .debug("outgoing.user.skip", { reason: envelope.reason });
+            this._logUtil.logConnectorOperationForUser("debug", envelope, "outgoing.user.skip", { reason: envelope.reason });
         });
 
         if (envelopesToProcess.length === 0) {
@@ -90,9 +93,9 @@ class SyncAgent {
                 // [STEP 2] Transform Hull objects into Mailjet objects
                 const mjIdent = (env.msg as IHullUserUpdateMessage).user.email as string;
                 
-                this._metricsClient.increment("ship.service_api.call", 1);
+                this._logUtil.incrementApiCallsMetric();
                 const contactResult = await this._svcClient.getContact(mjIdent);
-                this.handleOutgoingApiResult(env, contactResult);
+                this._logUtil.logOutgoingApiResultForUser(env, contactResult);
                 const contact = contactResult.success && (contactResult.data as IMailjetPagedResult<IMailjetContact>).Count === 1 ?
                     _.first((contactResult.data as IMailjetPagedResult<IMailjetContact>).Data) : undefined;
 
@@ -100,9 +103,9 @@ class SyncAgent {
                 if (contact !== undefined) {
                     // If no contact has been found for the email address,
                     // we save us an API call and do not query recipients at this point
-                    this._metricsClient.increment("ship.service_api.call", 1);
+                    this._logUtil.incrementApiCallsMetric();
                     const recipientsResult = await this._svcClient.getListRecipients(contact.ID);
-                    this.handleOutgoingApiResult(env, recipientsResult);
+                    this._logUtil.logOutgoingApiResultForUser(env, recipientsResult);
                     recipients = recipientsResult.success ? 
                         (recipientsResult.data as IMailjetPagedResult<IMailjetListRecipient>).Data : [];
                 }
@@ -116,10 +119,10 @@ class SyncAgent {
                 // [STEP 3] Execute API calls
                 let performedApiCall: boolean = false;
                 if (env.operation === "insert") {
-                    this._metricsClient.increment("ship.service_api.call", 1);
+                    this._logUtil.incrementApiCallsMetric();
                     performedApiCall = true;
                     const contactApiResult = await this._svcClient.createContact(env.serviceContactCreate);
-                    this.handleOutgoingApiResult(env, contactApiResult);
+                    this._logUtil.logOutgoingApiResultForUser(env, contactApiResult);
                     env.serviceContact = contactApiResult.success && (contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Count === 1 ?
                         _.first((contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Data) : undefined;
                 } else if(env.operation === "update" &&
@@ -127,43 +130,43 @@ class SyncAgent {
                           env.serviceContactCreate &&
                           (env.serviceContact.Name !== env.serviceContactCreate.Name ||
                            env.serviceContact.IsExcludedFromCampaigns !== env.serviceContactCreate.IsExcludedFromCampaigns)) {
-                    this._metricsClient.increment("ship.service_api.call", 1);
+                    this._logUtil.incrementApiCallsMetric();
                     performedApiCall = true;
                     const contactApiResult = await this._svcClient.updateContact(env.serviceContactCreate.Email, 
                         _.pick(env.serviceContactCreate, ["IsExcludedFromCampaigns", "Name"]));
-                    this.handleOutgoingApiResult(env, contactApiResult);
+                    this._logUtil.logOutgoingApiResultForUser(env, contactApiResult);
                     env.serviceContact = contactApiResult.success && (contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Count === 1 ?
                         _.first((contactApiResult.data as IMailjetPagedResult<IMailjetContact>).Data) : undefined;
                 }
 
                 if (env.serviceContactData.Data.length !== 0 && env.serviceContact !== undefined) 
                 {
-                    this._metricsClient.increment("ship.service_api.call", 1);
+                    this._logUtil.incrementApiCallsMetric();
                     performedApiCall = true;
                     const contactDataApiResult = await this._svcClient.updateContactData(env.serviceContact.ID, env.serviceContactData);
-                    this.handleOutgoingApiResult(env, contactDataApiResult);
+                    this._logUtil.logOutgoingApiResultForUser(env, contactDataApiResult);
                     env.serviceContactData = contactDataApiResult.success ? _.first((contactDataApiResult.data as IMailjetPagedResult<IMailjetContactData>).Data) : undefined;
                 }
 
                 if (env.serviceContactListActions.ContactsLists.length !== 0 && env.serviceContact !== undefined) 
                 {
-                    this._metricsClient.increment("ship.service_api.call", 1);
+                    this._logUtil.incrementApiCallsMetric();
                     performedApiCall = true;
                     const contactListSubscriptionsApiResult = await this._svcClient.manageContactListSubscriptions(env.serviceContact.ID, env.serviceContactListActions);
-                    this.handleOutgoingApiResult(env, contactListSubscriptionsApiResult);
+                    this._logUtil.logOutgoingApiResultForUser(env, contactListSubscriptionsApiResult);
                     env.serviceContactListActions = contactListSubscriptionsApiResult.success ? { ContactsLists: (_.first((contactListSubscriptionsApiResult.data as IMailjetPagedResult<IMailjetContactListAction>).Data) as any) } : undefined;
                 }
 
                 if (performedApiCall && env.serviceContact !== undefined) {
                     // Make sure we have the latest data for the contact; the full list is not returned by updateContactData
-                    this._metricsClient.increment("ship.service_api.call", 1);
+                    this._logUtil.incrementApiCallsMetric();
                     const contactDataApiResult = await this._svcClient.getContactData(env.serviceContact.ID);
-                    this.handleOutgoingApiResult(env, contactDataApiResult);
+                    this._logUtil.logOutgoingApiResultForUser(env, contactDataApiResult);
                     env.serviceContactData = contactDataApiResult.success ? _.first((contactDataApiResult.data as IMailjetPagedResult<IMailjetContactData>).Data) : undefined;
                     // Get the latest list recipients for the contact
-                    this._metricsClient.increment("ship.service_api.call", 1);
+                    this._logUtil.incrementApiCallsMetric();
                     const listRecipientsApiResult = await this._svcClient.getListRecipients(env.serviceContact.ID);
-                    this.handleOutgoingApiResult(env, listRecipientsApiResult);
+                    this._logUtil.logOutgoingApiResultForUser(env, listRecipientsApiResult);
                     env.serviceContactRecipients = listRecipientsApiResult.success ? 
                         (listRecipientsApiResult.data as IMailjetPagedResult<IMailjetListRecipient>).Data : undefined;
                     
@@ -178,7 +181,7 @@ class SyncAgent {
             } catch (error) {
                 // At this point it is an unknown error, so something which 
                 // indicates a real error not just an API error
-                this.handleOutgoingError(env, "outgoing.user.error", error);
+                this._logUtil.logUnhandledOutgoingErrorForUser(env, "outgoing.user.error", error);
             }
 
             
@@ -198,7 +201,7 @@ class SyncAgent {
         const result: IMailjetContactProperty[] = [];
         
         while (hasMore === true) {
-            this._metricsClient.increment("ship.service_api.call", 1);
+            this._logUtil.incrementApiCallsMetric();
             const apiResult = await this._svcClient.getMetadataContactProperties(offset, limit);
             hasMore = (apiResult.data as IMailjetPagedResult<IMailjetContactProperty>).Count === limit;
             offset += limit;
@@ -221,7 +224,7 @@ class SyncAgent {
         const result: IMailjetContactList[] = [];
 
         while (hasMore === true) {
-            this._metricsClient.increment("ship.service_api.call", 1);
+            this._logUtil.incrementApiCallsMetric();
             const apiResult = await this._svcClient.getContactLists(offset, limit);
             hasMore = (apiResult.data as IMailjetPagedResult<IMailjetContactList>).Count === limit;
             offset += limit;
@@ -297,51 +300,16 @@ class SyncAgent {
      */
     public async handleEventCallbacks(eventCallbacks: IMailjetEvent | IMailjetEvent[]): Promise<boolean> {
         const mjEvents: IMailjetEvent[] = [];
-        let isSuccess = true;
-        try {
-            if (_.isArray(eventCallbacks)) {
-                mjEvents.push(...eventCallbacks);
-            } else {
-                mjEvents.push(eventCallbacks);
-            }
-            
-            await asyncForEach(mjEvents, async (mjEvent: IMailjetEvent) => {
-                const userIdent = this._mappingUtil.mapMailjetEventToHullUserIdent(mjEvent);
-                if(_.includes(_.keys(MJ_EVENT_MAPPING), mjEvent.event) === false) {
-                    this._hullClient.asUser(userIdent).logger.error("incoming.event.error", { 
-                        reason: ERROR_INCOMING_EVENT_UNKNOWN,
-                        event: mjEvent
-                    });
-                } else {
-                    
-                    const hullEvent = this._mappingUtil.mapMailjetEventToHullEvent(mjEvent);
-                    // NOTE: Test events do have the mj_contact_id set to zero
-                    if (mjEvent.mj_contact_id === 0) {
-                        // Log it so the user can verify it
-                        this._hullClient.logger.log("incoming.event.test", { ident: userIdent, event: hullEvent });
-                    } else {
-                        try {
-                            await this._hullClient.asUser(userIdent).track(
-                                hullEvent.event, 
-                                hullEvent.properties, 
-                                _.merge({}, hullEvent.context, {
-                                    created_at: hullEvent.created_at,
-                                    source: "mailjet"
-                                }));
-                            this._hullClient.asUser(userIdent).logger.debug("incoming.event.success", { event: hullEvent });   
-                        } catch (error) {
-                            this._hullClient.asUser(userIdent).logger.error("incoming.event.error", { event: hullEvent });
-                        }
-                    }
-                }
-            });
-            
-        } catch (error) {
-            isSuccess = false;
-            this._hullClient.logger.error("incoming.event.error", { error: JSON.stringify(error)});
+
+        if (_.isArray(eventCallbacks)) {
+            mjEvents.push(...eventCallbacks);
+        } else {
+            mjEvents.push(eventCallbacks);
         }
+            
+        await asyncForEach(mjEvents, async (mjEvent: IMailjetEvent) => this._mjEventUtil.processEvent(mjEvent));
         
-        return Promise.resolve(isSuccess);
+        return Promise.resolve(true);
     }
 
     /**
@@ -379,7 +347,7 @@ class SyncAgent {
             deletes: []
         };
 
-        this._metricsClient.increment("ship.service_api.call", 1);
+        this._logUtil.incrementApiCallsMetric();
         const allEventCallbacksApiResult = await this._svcClient.listEventCallbacks();
         if (allEventCallbacksApiResult.success === false) {
             this._hullClient.logger.log("connector.webhook.error", {
@@ -426,7 +394,7 @@ class SyncAgent {
 
         let successfullyDeleted: boolean = true;
         await asyncForEach(actionsForEventCallbacks.deletes, async(ecToDel: IMailjetEventCallbackUrl) => {
-            this._metricsClient.increment("ship.service_api.call", 1);
+            this._logUtil.incrementApiCallsMetric();
             const delResult = await this._svcClient.deleteEventCallback(ecToDel.ID);
             if(delResult.success === false) {
                 successfullyDeleted = false;
@@ -456,7 +424,7 @@ class SyncAgent {
         }
 
         await asyncForEach(actionsForEventCallbacks.creates, async(ecToCreate: IMailjetEventCallbackUrlCreate) => {
-            this._metricsClient.increment("ship.service_api.call", 1);
+            this._logUtil.incrementApiCallsMetric();
             const createResult = await this._svcClient.createEventCallback(ecToCreate);
             if(createResult.success === false) {
                 successfullyDeleted = false;
@@ -500,7 +468,7 @@ class SyncAgent {
         const baUser = this._connector.id;
         const baPass = this._connector.secret;
 
-        this._metricsClient.increment("ship.service_api.call", 1);
+        this._logUtil.incrementApiCallsMetric();
         const allEventCallbacksApiResult = await this._svcClient.listEventCallbacks();
         if (allEventCallbacksApiResult.success === false) {
             this._hullClient.logger.log("connector.webhook.error", {
@@ -524,7 +492,7 @@ class SyncAgent {
             });
         
         await asyncForEach(_.concat(registeredCallbacks, registeredCallbacksDifferentHost), async(ecToDel: IMailjetEventCallbackUrl) => {
-            this._metricsClient.increment("ship.service_api.call", 1);
+            this._logUtil.incrementApiCallsMetric();
             const delResult = await this._svcClient.deleteEventCallback(ecToDel.ID);
             if(delResult.success === false) {
                 this._hullClient.logger.error(
@@ -545,28 +513,6 @@ class SyncAgent {
         });
 
         return true;
-    }
-
-    private handleOutgoingApiResult<T, U>(envelope: IOperationEnvelope, apiResult: IApiResultObject<T, U>) {
-        const userIdent = _.pick((envelope.msg as IHullUserUpdateMessage).user, ["id", "external_id", "email"]);
-        const message = `outgoing.user.${apiResult.success ? 'success' : 'error'}`;
-        if (apiResult.success) {
-            this._hullClient.asUser(userIdent)
-                .logger
-                .debug(message, apiResult);
-        } else {
-            this._hullClient.asUser(userIdent)
-                .logger
-                .error(message, apiResult);
-        }
-        
-    }
-
-    private handleOutgoingError(envelope: IOperationEnvelope, message: string, error: Error) {
-        const userIdent = _.pick((envelope.msg as IHullUserUpdateMessage).user, ["id", "external_id", "email"]);
-        this._hullClient.asUser(userIdent)
-            .logger
-            .error(message, { errorMessage: error.message, errorName: error.name });
     }
 }
 

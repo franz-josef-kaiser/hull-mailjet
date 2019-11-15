@@ -143,3 +143,5 @@ export interface IOperationEnvelope {
     operation: "insert" | "update" | "skip";
     reason?: string;
 }
+
+export type ConnectorLogLevel = "log" | "error" | "info" | "warn" | "verbose" | "debug"; 

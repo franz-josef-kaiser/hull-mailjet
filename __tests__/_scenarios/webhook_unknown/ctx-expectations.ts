@@ -21,8 +21,12 @@ const setupExpectations = (ctx: ContextMock, apiResponses: IApiResponseNocked[])
     expect((ctx.client.logger.error as any).mock.calls[0]).toEqual([
         "incoming.event.error",
         {
-            reason: ERROR_INCOMING_EVENT_UNKNOWN,
-            event: webhookPayload
+            error: {
+                receivedEvent: webhookPayload,
+                reason: ERROR_INCOMING_EVENT_UNKNOWN,
+                name: "UnknownMailjetEventError"
+            },
+            event: undefined
         }
     ]);
     // Check track call
