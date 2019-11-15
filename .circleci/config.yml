@@ -45,5 +45,11 @@ jobs:
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
 
+      # notify cc about pending tests
+      - run: ./cc-test-reporter before-build
+
       # run tests!
       - run: npm run test:ci
+
+      # notify cc about completed tests
+      - run: - ./cc-test-reporter after-build -t lcov --debug
