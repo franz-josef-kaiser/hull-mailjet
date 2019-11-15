@@ -29,7 +29,7 @@ jobs:
             - v1-dependencies-
       - run:
           name: Install codecov globally
-          command: npm i -g codecov
+          command: sudo npm i -g codecov
       
       - run: npm i
 
