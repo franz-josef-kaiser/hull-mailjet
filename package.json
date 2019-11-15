@@ -7,6 +7,7 @@
     "start": "npm run serve",
     "serve": "pm2-runtime start ecosystem.config.js --env production",
     "test": "jest --env=node --colors --coverage --no-cache",
+    "test:ci": "npm run test && codecov",
     "build": "npm run build:js",
     "build:js": "babel src --out-dir build --extensions \".ts,.tsx\" --source-maps inline",
     "lint": "tslint src/**/*.{ts,tsx}",

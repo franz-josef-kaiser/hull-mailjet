@@ -1,5 +1,7 @@
 # Hull Mailjet Connector
 
+[![Known Vulnerabilities](https://snyk.io/test/github/SMK1085/hull-mailjet/badge.svg)](https://snyk.io/test/github/SMK1085/hull-mailjet)
+
 ## Overview
 
 A connector fo Hull which allows you to synchronize Hull users to Mailchimp, keep their subscriptions synchronized with the segments of Hull users and capture actions such as Email opened, Unsubscribed from Mailjet.
